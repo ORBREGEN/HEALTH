@@ -1,0 +1,19 @@
+{
+  "built_at": "2026-05-02T22:41:06.652409+00:00",
+  "n_cells": 1305099,
+  "n_donors": 268,
+  "n_genes": 9838,
+  "n_cell_types": 60,
+  "n_pathways": 12,
+  "source_file": "hlca_full.h5ad",
+  "fetal_source": null,
+  "visium_bronchus": null,
+  "visium_parenchyma": null,
+  "disease_filter": "disease == normal",
+  "normalization": "log1p(CP10K)",
+  "cell_type_column": "ann_finest_level",
+  "global_sample_size": 5000,
+  "cells_per_type": 500,
+  "min_cells_for_type": 100,
+  "min_expressing_frac": 0.05
+}
