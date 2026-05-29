@@ -1,19 +1,20 @@
 {
-  "built_at": "2026-05-02T22:41:06.652409+00:00",
+  "built_at": "2026-05-28T16:34:18.289865+00:00",
   "n_cells": 1305099,
   "n_donors": 268,
-  "n_genes": 9838,
+  "n_genes": 15023,
   "n_cell_types": 60,
   "n_pathways": 12,
+  "n_ct_gene_entries": 17380,
   "source_file": "hlca_full.h5ad",
-  "fetal_source": null,
-  "visium_bronchus": null,
-  "visium_parenchyma": null,
+  "fetal_source": "lung_fetal_assembled_10domains.h5ad",
+  "visium_bronchus": "lung_tissues_visium_bronchus.h5ad",
+  "visium_parenchyma": "lung_tissues_visium_parenchyma.h5ad",
   "disease_filter": "disease == normal",
   "normalization": "log1p(CP10K)",
   "cell_type_column": "ann_finest_level",
   "global_sample_size": 5000,
   "cells_per_type": 500,
   "min_cells_for_type": 100,
-  "min_expressing_frac": 0.05
+  "min_expressing_frac": 0.01
 }

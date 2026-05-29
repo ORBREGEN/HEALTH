@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     # Reasoning Engine — required for POST /api/v1/interpret
     ANTHROPIC_API_KEY: str | None = None
 
+    # Supabase — required for expert applications and waitlist storage
+    SUPABASE_URL: str | None = None
+    SUPABASE_SERVICE_KEY: str | None = None
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

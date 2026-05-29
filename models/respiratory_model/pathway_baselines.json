@@ -97,11 +97,16 @@
   "NF-kB / cytokine storm": {
     "category": "immune",
     "description": "Master inflammatory regulator; drives cytokine amplification loops.",
-    "n_trigger_genes": 9,
+    "n_trigger_genes": 11,
     "n_suppressor_genes": 0,
-    "trigger_mean_expr": 0.3938501179218292,
+    "trigger_mean_expr": 0.3324016291986812,
     "suppressor_mean_expr": null,
     "genes_tracked": {
+      "IL6": {
+        "mean": 0.08840949833393097,
+        "std": 0.42180532217025757,
+        "role": "trigger"
+      },
       "IL1B": {
         "mean": 0.21243974566459656,
         "std": 0.633865237236023,
@@ -110,6 +115,11 @@
       "CXCL8": {
         "mean": 0.4294044077396393,
         "std": 0.9115404486656189,
+        "role": "trigger"
+      },
+      "CXCL10": {
+        "mean": 0.023357361555099487,
+        "std": 0.22572390735149384,
         "role": "trigger"
       },
       "CCL2": {
@@ -152,14 +162,24 @@
   "TGF-beta / fibrosis": {
     "category": "remodelling",
     "description": "Tissue remodelling and fibrosis programme; low in healthy, high in IPF/sarcoidosis.",
-    "n_trigger_genes": 9,
+    "n_trigger_genes": 14,
     "n_suppressor_genes": 0,
-    "trigger_mean_expr": 0.22815637373261982,
+    "trigger_mean_expr": 0.16249097484563077,
     "suppressor_mean_expr": null,
     "genes_tracked": {
       "TGFB1": {
         "mean": 0.44103604555130005,
         "std": 0.7934562563896179,
+        "role": "trigger"
+      },
+      "TGFB2": {
+        "mean": 0.05892833322286606,
+        "std": 0.31796297430992126,
+        "role": "trigger"
+      },
+      "TGFB3": {
+        "mean": 0.02420050837099552,
+        "std": 0.2003592699766159,
         "role": "trigger"
       },
       "SMAD2": {
@@ -182,6 +202,11 @@
         "std": 0.5513949990272522,
         "role": "trigger"
       },
+      "COL3A1": {
+        "mean": 0.09228800237178802,
+        "std": 0.45126911997795105,
+        "role": "trigger"
+      },
       "FN1": {
         "mean": 0.4603818953037262,
         "std": 0.9159300923347473,
@@ -197,9 +222,19 @@
         "std": 0.31282463669776917,
         "role": "trigger"
       },
+      "LOXL2": {
+        "mean": 0.028901485726237297,
+        "std": 0.22520269453525543,
+        "role": "trigger"
+      },
       "MMP2": {
         "mean": 0.11030701547861099,
         "std": 0.46672192215919495,
+        "role": "trigger"
+      },
+      "MMP9": {
+        "mean": 0.017147954553365707,
+        "std": 0.17860326170921326,
         "role": "trigger"
       }
     }
@@ -207,9 +242,9 @@
   "Epithelial-Mesenchymal Transition (EMT)": {
     "category": "remodelling",
     "description": "Structural transformation where epithelial cells lose identity and gain mesenchymal traits.",
-    "n_trigger_genes": 5,
+    "n_trigger_genes": 9,
     "n_suppressor_genes": 4,
-    "trigger_mean_expr": 0.5518479779362678,
+    "trigger_mean_expr": 0.32316886881987256,
     "suppressor_mean_expr": 0.28874965757131577,
     "genes_tracked": {
       "VIM": {
@@ -222,6 +257,16 @@
         "std": 0.9159300923347473,
         "role": "trigger"
       },
+      "SNAI1": {
+        "mean": 0.04350714758038521,
+        "std": 0.27798911929130554,
+        "role": "trigger"
+      },
+      "SNAI2": {
+        "mean": 0.05386654660105705,
+        "std": 0.2970259189605713,
+        "role": "trigger"
+      },
       "ZEB1": {
         "mean": 0.13397982716560364,
         "std": 0.5131313800811768,
@@ -232,9 +277,19 @@
         "std": 0.9747897386550903,
         "role": "trigger"
       },
+      "TWIST2": {
+        "mean": 0.03475828096270561,
+        "std": 0.24050919711589813,
+        "role": "trigger"
+      },
       "MMP2": {
         "mean": 0.11030701547861099,
         "std": 0.46672192215919495,
+        "role": "trigger"
+      },
+      "MMP9": {
+        "mean": 0.017147954553365707,
+        "std": 0.17860326170921326,
         "role": "trigger"
       },
       "CDH1": {
@@ -317,9 +372,9 @@
   "Hypoxia / HIF response": {
     "category": "metabolic",
     "description": "Oxygen-sensing pathway; activated when lung tissue is not receiving adequate O2.",
-    "n_trigger_genes": 11,
+    "n_trigger_genes": 12,
     "n_suppressor_genes": 0,
-    "trigger_mean_expr": 0.3902272324670445,
+    "trigger_mean_expr": 0.3601165618747473,
     "suppressor_mean_expr": null,
     "genes_tracked": {
       "HIF1A": {
@@ -340,6 +395,11 @@
       "VEGFB": {
         "mean": 0.21664108335971832,
         "std": 0.5356698036193848,
+        "role": "trigger"
+      },
+      "VEGFC": {
+        "mean": 0.028899185359477997,
+        "std": 0.2151464819908142,
         "role": "trigger"
       },
       "SLC2A1": {
@@ -382,14 +442,34 @@
   "Cell proliferation / oncogenic": {
     "category": "oncogenic",
     "description": "Cell cycle entry and growth control; aberrant activation underlies lung cancer.",
-    "n_trigger_genes": 5,
-    "n_suppressor_genes": 3,
-    "trigger_mean_expr": 0.29830401837825776,
-    "suppressor_mean_expr": 0.30586229761441547,
+    "n_trigger_genes": 16,
+    "n_suppressor_genes": 4,
+    "trigger_mean_expr": 0.11135420703794807,
+    "suppressor_mean_expr": 0.24127766769379377,
     "genes_tracked": {
+      "MKI67": {
+        "mean": 0.02794903889298439,
+        "std": 0.21884669363498688,
+        "role": "trigger"
+      },
+      "TOP2A": {
+        "mean": 0.0375613272190094,
+        "std": 0.2609870433807373,
+        "role": "trigger"
+      },
       "PCNA": {
         "mean": 0.24344663321971893,
         "std": 0.5751965045928955,
+        "role": "trigger"
+      },
+      "CDK1": {
+        "mean": 0.0446087084710598,
+        "std": 0.2690616548061371,
+        "role": "trigger"
+      },
+      "CDK2": {
+        "mean": 0.04734494537115097,
+        "std": 0.27652573585510254,
         "role": "trigger"
       },
       "CDK4": {
@@ -397,9 +477,44 @@
         "std": 0.5779733061790466,
         "role": "trigger"
       },
+      "CCNA2": {
+        "mean": 0.018493426963686943,
+        "std": 0.1653367578983307,
+        "role": "trigger"
+      },
+      "CCNB1": {
+        "mean": 0.036079030483961105,
+        "std": 0.2302563637495041,
+        "role": "trigger"
+      },
       "CCND1": {
         "mean": 0.334522008895874,
         "std": 0.7282897233963013,
+        "role": "trigger"
+      },
+      "CCNE1": {
+        "mean": 0.012025070376694202,
+        "std": 0.13587841391563416,
+        "role": "trigger"
+      },
+      "E2F1": {
+        "mean": 0.02037665992975235,
+        "std": 0.1575140655040741,
+        "role": "trigger"
+      },
+      "MYBL2": {
+        "mean": 0.019583063200116158,
+        "std": 0.17444507777690887,
+        "role": "trigger"
+      },
+      "BUB1": {
+        "mean": 0.013108449056744576,
+        "std": 0.14431250095367432,
+        "role": "trigger"
+      },
+      "PLK1": {
+        "mean": 0.013017500750720501,
+        "std": 0.14104224741458893,
         "role": "trigger"
       },
       "KRAS": {
@@ -426,20 +541,35 @@
         "mean": 0.47288960218429565,
         "std": 0.8384140729904175,
         "role": "suppressor"
+      },
+      "CDKN2A": {
+        "mean": 0.047523777931928635,
+        "std": 0.2777247428894043,
+        "role": "suppressor"
       }
     }
   },
   "Mucociliary clearance": {
     "category": "airway",
     "description": "Airway defence: ciliated cells beat, goblet cells secrete mucus to trap and clear debris.",
-    "n_trigger_genes": 7,
+    "n_trigger_genes": 10,
     "n_suppressor_genes": 0,
-    "trigger_mean_expr": 0.2886249305946486,
+    "trigger_mean_expr": 0.22151923626661302,
     "suppressor_mean_expr": null,
     "genes_tracked": {
       "FOXJ1": {
         "mean": 0.10342183709144592,
         "std": 0.4367510676383972,
+        "role": "trigger"
+      },
+      "DNAI1": {
+        "mean": 0.06306398659944534,
+        "std": 0.330218106508255,
+        "role": "trigger"
+      },
+      "DNAI2": {
+        "mean": 0.06269871443510056,
+        "std": 0.32781344652175903,
         "role": "trigger"
       },
       "DYNC2H1": {
@@ -455,6 +585,11 @@
       "MUC5AC": {
         "mean": 0.20225682854652405,
         "std": 0.7004035711288452,
+        "role": "trigger"
+      },
+      "MUC5B": {
+        "mean": 0.06905514746904373,
+        "std": 0.40017181634902954,
         "role": "trigger"
       },
       "MUC1": {
@@ -527,14 +662,24 @@
   "Vascular injury": {
     "category": "vascular",
     "description": "Endothelial stress and coagulation activation; marks vessel wall damage.",
-    "n_trigger_genes": 8,
-    "n_suppressor_genes": 1,
-    "trigger_mean_expr": 0.28897000197321177,
-    "suppressor_mean_expr": 0.46401605010032654,
+    "n_trigger_genes": 11,
+    "n_suppressor_genes": 3,
+    "trigger_mean_expr": 0.21953386864201588,
+    "suppressor_mean_expr": 0.20442303890983263,
     "genes_tracked": {
       "ICAM1": {
         "mean": 0.35521751642227173,
         "std": 0.7834804654121399,
+        "role": "trigger"
+      },
+      "VCAM1": {
+        "mean": 0.021944599226117134,
+        "std": 0.22039295732975006,
+        "role": "trigger"
+      },
+      "SELP": {
+        "mean": 0.03157935291528702,
+        "std": 0.2493905872106552,
         "role": "trigger"
       },
       "VWF": {
@@ -557,6 +702,11 @@
         "std": 0.9384376406669617,
         "role": "trigger"
       },
+      "ANGPT2": {
+        "mean": 0.04958858713507652,
+        "std": 0.2812530994415283,
+        "role": "trigger"
+      },
       "EDN1": {
         "mean": 0.11188793927431107,
         "std": 0.4693508446216583,
@@ -576,15 +726,25 @@
         "mean": 0.46401605010032654,
         "std": 0.8734684586524963,
         "role": "suppressor"
+      },
+      "CDH5": {
+        "mean": 0.09641284495592117,
+        "std": 0.4534900188446045,
+        "role": "suppressor"
+      },
+      "KDR": {
+        "mean": 0.0528402216732502,
+        "std": 0.32050496339797974,
+        "role": "suppressor"
       }
     }
   },
   "Myeloid activation": {
     "category": "immune",
     "description": "Macrophage and neutrophil activation state; elevated during infection and ARDS.",
-    "n_trigger_genes": 12,
+    "n_trigger_genes": 13,
     "n_suppressor_genes": 0,
-    "trigger_mean_expr": 0.6454667982955774,
+    "trigger_mean_expr": 0.6028138977976946,
     "suppressor_mean_expr": null,
     "genes_tracked": {
       "CD14": {
@@ -627,6 +787,11 @@
         "std": 1.1226791143417358,
         "role": "trigger"
       },
+      "S100A12": {
+        "mean": 0.09097909182310104,
+        "std": 0.4610106945037842,
+        "role": "trigger"
+      },
       "LYZ": {
         "mean": 0.8110156655311584,
         "std": 1.2134207487106323,
@@ -652,19 +817,34 @@
   "T cell exhaustion": {
     "category": "immune",
     "description": "Adaptive immune dysfunction; exhausted T cells cannot clear chronic infection or tumour.",
-    "n_trigger_genes": 6,
-    "n_suppressor_genes": 2,
-    "trigger_mean_expr": 0.22370507071415582,
-    "suppressor_mean_expr": 0.23033596575260162,
+    "n_trigger_genes": 9,
+    "n_suppressor_genes": 4,
+    "trigger_mean_expr": 0.165167020012935,
+    "suppressor_mean_expr": 0.14494004240259528,
     "genes_tracked": {
+      "LAG3": {
+        "mean": 0.04377793148159981,
+        "std": 0.3015028238296509,
+        "role": "trigger"
+      },
       "HAVCR2": {
         "mean": 0.2111179232597351,
         "std": 0.5693092346191406,
         "role": "trigger"
       },
+      "TIGIT": {
+        "mean": 0.03763967007398605,
+        "std": 0.2927519679069519,
+        "role": "trigger"
+      },
       "TOX": {
         "mean": 0.1318398267030716,
         "std": 0.5078981518745422,
+        "role": "trigger"
+      },
+      "TOX2": {
+        "mean": 0.06285515427589417,
+        "std": 0.35859230160713196,
         "role": "trigger"
       },
       "BATF": {
@@ -695,6 +875,16 @@
       "IL7R": {
         "mean": 0.3676767647266388,
         "std": 0.8452515006065369,
+        "role": "suppressor"
+      },
+      "SELL": {
+        "mean": 0.0900459960103035,
+        "std": 0.43436092138290405,
+        "role": "suppressor"
+      },
+      "CCR7": {
+        "mean": 0.029042242094874382,
+        "std": 0.25586289167404175,
         "role": "suppressor"
       }
     }
