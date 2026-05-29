@@ -15,7 +15,7 @@ export default function VisionPage() {
             </h1>
             <p className="vm-hero-sub">
               We are building a biological intelligence system capable of reading any human body
-              at cellular resolution — detecting deviation from healthy, connecting patients to
+              at cellular resolution, detecting deviation from healthy, connecting patients to
               the right expertise, and eventually guiding the correction of what has gone wrong.
               We are starting with the lung.
             </p>
@@ -32,13 +32,13 @@ export default function VisionPage() {
               <h2 className="about-section-title" style={{ marginTop: "24px" }}>
                 Medicine today is<br />symptom-matching.<br /><em>It should be biology-reading.</em>
               </h2>
-              <p style={{ marginTop: "28px", fontSize: "16px", lineHeight: "1.75", color: "var(--slate)", textWrap: "pretty", maxWidth: "480px" }}>
-                By the time symptoms appear, the underlying biology has often already shifted —
+              <p style={{ marginTop: "28px", fontSize: "17px", lineHeight: "1.75", color: "var(--ink)", textWrap: "pretty", maxWidth: "480px" }}>
+                By the time symptoms appear, the underlying biology has often already shifted
                 cell populations have changed, gene expression has drifted, pathways have been
                 altered for months or years. Current diagnostics surface patterns from what
                 patients describe. We are building a system that reads what cells show.
               </p>
-              <p style={{ marginTop: "18px", fontSize: "16px", lineHeight: "1.75", color: "var(--slate)", textWrap: "pretty", maxWidth: "480px" }}>
+              <p style={{ marginTop: "18px", fontSize: "17px", lineHeight: "1.75", color: "var(--ink)", textWrap: "pretty", maxWidth: "480px" }}>
                 The gap between symptom-onset and cellular-onset is where early detection lives.
                 That is the gap we are closing.
               </p>
@@ -47,7 +47,7 @@ export default function VisionPage() {
               <div className="vm-stat">
                 <div className="vm-stat-n">4.7<span>M</span></div>
                 <div className="vm-stat-l">
-                  People die annually from chronic respiratory diseases — the vast majority in
+                  People die annually from chronic respiratory diseases, the vast majority in
                   low- and middle-income countries where specialist access is structurally limited.
                 </div>
               </div>
@@ -55,13 +55,13 @@ export default function VisionPage() {
                 <div className="vm-stat-n">2–5<span>yr</span></div>
                 <div className="vm-stat-l">
                   Average delay between first symptoms and correct diagnosis for rare or complex
-                  lung diseases — during which irreversible damage accumulates.
+                  lung diseases, during which irreversible damage accumulates.
                 </div>
               </div>
               <div className="vm-stat">
                 <div className="vm-stat-n">~60<span>%</span></div>
                 <div className="vm-stat-l">
-                  Of first-contact respiratory referrals do not reach the right sub-specialist —
+                  Of first-contact respiratory referrals do not reach the right sub-specialist
                   routed by symptom pattern, not biological profile.
                 </div>
               </div>
@@ -75,20 +75,20 @@ export default function VisionPage() {
         <div className="wrap">
           <span className="micro">The vision</span>
           <p className="vm-vision-quote">
-            &ldquo;Every patient, understood at cellular resolution — regardless of where they
+            &ldquo;Every patient, understood at cellular resolution, regardless of where they
             live, who they can afford to see, or what their symptoms sound like.&rdquo;
           </p>
           <div className="vm-vision-body">
             <div className="vm-vision-col">
               <h3>A complete map of healthy human biology</h3>
               <p>
-                The long-term goal is a reference model of every organ system in the human body —
+                The long-term goal is a reference model of every organ system in the human body
                 built from real human cells, computed from data, and refined by expert feedback.
                 Not a textbook summary. A statistical model with enough resolution to detect
                 cellular-level deviation in any sample from any donor.
               </p>
               <p>
-                This reference does not exist yet. Pieces of it exist — the Human Lung Cell Atlas
+                This reference does not exist yet. Pieces of it exist, the Human Lung Cell Atlas
                 is the most advanced of them. We are using it to build the first production-grade
                 implementation of what a full-body reference could look like.
               </p>
@@ -98,7 +98,7 @@ export default function VisionPage() {
               <p>
                 A patient in a rural clinic should have access to the same biological intelligence
                 as a patient at a major academic medical centre. The bottleneck is not physician
-                count — it is the absence of a system that can process biology and route patients
+                count, it is the absence of a system that can process biology and route patients
                 to the right expertise at scale.
               </p>
               <p>
@@ -120,33 +120,33 @@ export default function VisionPage() {
           </h2>
           <div className="vm-mission-cards">
             <div className="vm-mission-card">
-              <div className="vm-mission-card-n">01 — Reference</div>
+              <div className="vm-mission-card-n">01, Reference</div>
               <h3>Build the world&apos;s most detailed model of healthy human biology</h3>
               <p>
-                Starting with the lung — 2.28 million cells, 55,329 genes, 16 disease states
+                Starting with the lung, 2.28 million cells, 55,329 genes, 16 disease states
                 present for validation. Every reference statistic computed from the data.
                 Nothing hardcoded. The model learns what healthy looks like at every level of
                 resolution: gene, cell type, tissue region, donor variation.
               </p>
-              <span className="vm-mission-current">Active — respiratory</span>
+              <span className="vm-mission-current">Active, respiratory</span>
             </div>
             <div className="vm-mission-card">
-              <div className="vm-mission-card-n">02 — Detection</div>
+              <div className="vm-mission-card-n">02, Detection</div>
               <h3>Surface every deviation from healthy with full biological traceability</h3>
               <p>
                 When a sample arrives, the model compares it against the reference and describes
-                every deviation — which cell populations are expanded or depleted, which genes
+                every deviation, which cell populations are expanded or depleted, which genes
                 are out of range, which biological pathways are dysregulated. The model does not
                 name diseases. It characterises biology. Experts name diseases.
               </p>
             </div>
             <div className="vm-mission-card">
-              <div className="vm-mission-card-n">03 — Connection</div>
+              <div className="vm-mission-card-n">03, Connection</div>
               <h3>Connect patients to the right expertise, grounded in their biology</h3>
               <p>
-                Patient matching is not keyword search. It is the deviation profile from the AI
-                engine mapped to the expertise profile of a certified specialist. The right match
-                is not the nearest pulmonologist — it is the one whose case experience best fits
+                Patient matching is not keyword search. It is the deviation profile from the
+                detection engine mapped to the expertise profile of a certified specialist. The right match
+                is not the nearest pulmonologist, it is the one whose case experience best fits
                 the biological pattern present in this patient&apos;s data.
               </p>
             </div>
@@ -168,7 +168,7 @@ export default function VisionPage() {
               <div>
                 <div className="vm-layer-label">Patient connection</div>
                 <h3 className="vm-layer-title">The face of the platform</h3>
-                <div className="vm-layer-who">Who — Any citizen</div>
+                <div className="vm-layer-who">Who, Any citizen</div>
                 <span className="vm-layer-tag">Phase 2</span>
               </div>
               <div className="vm-layer-body">
@@ -176,13 +176,13 @@ export default function VisionPage() {
                   Any person with a concern describes their symptoms, duration, and history in
                   plain language. No medical background required. The platform processes the intake
                   and matches them with the most suitable specialist for their specific presentation
-                  — not a generic referral, but a match based on the biological deviation pattern
+                 , not a generic referral, but a match based on the biological deviation pattern
                   their symptoms suggest.
                 </p>
                 <p>
                   The intelligence behind the matching comes from Layer 2. Layer 1 is the interface
                   through which that intelligence reaches patients. It is designed for anyone,
-                  anywhere — including low-bandwidth and low-resource settings where specialist
+                  anywhere, including low-bandwidth and low-resource settings where specialist
                   access is structurally limited.
                 </p>
               </div>
@@ -191,15 +191,15 @@ export default function VisionPage() {
             <div className="vm-layer">
               <div className="vm-layer-num">2</div>
               <div>
-                <div className="vm-layer-label">AI intelligence engine</div>
+                <div className="vm-layer-label">Detection engine</div>
                 <h3 className="vm-layer-title">The biological reference model</h3>
-                <div className="vm-layer-who">Who — Research laboratories · powers Layer 1</div>
-                <span className="vm-layer-tag active">Active — Phase 1</span>
+                <div className="vm-layer-who">Who, Research laboratories · powers Layer 1</div>
+                <span className="vm-layer-tag active">Active, Phase 1</span>
               </div>
               <div className="vm-layer-body">
                 <p>
                   The core of the platform. A biological model built from 2.28 million human lung
-                  cells across the Human Lung Cell Atlas — profiling what healthy human biology
+                  cells across the Human Lung Cell Atlas, profiling what healthy human biology
                   looks like at the level of individual cells, gene by gene, tissue region by
                   tissue region. The lung is where we start. The method applies to every organ.
                 </p>
@@ -208,12 +208,12 @@ export default function VisionPage() {
                   surfaces every deviation: which cell populations are expanded or depleted, which
                   genes are outside their normal distribution, which biological pathways are showing
                   abnormal activation. It returns Z-scores, deviation magnitudes, and pathway states
-                  — not disease names. Clinical judgment belongs to the expert in Layer 3.
+                 , not disease names. Clinical judgment belongs to the expert in Layer 3.
                 </p>
                 <p>
-                  This layer is the first we are building. It is currently in research preview with
-                  eleven partner sites. API access is available for non-commercial research under a
-                  data-use agreement.
+                  This layer is the first we are building. The engine is active and accessible
+                  to early research collaborators. API access for non-commercial research is
+                  available by application.
                 </p>
               </div>
             </div>
@@ -223,12 +223,12 @@ export default function VisionPage() {
               <div>
                 <div className="vm-layer-label">Expert network</div>
                 <h3 className="vm-layer-title">The feedback flywheel</h3>
-                <div className="vm-layer-who">Who — Certified physicians · Starting with respiratory specialists</div>
+                <div className="vm-layer-who">Who, Certified physicians · Starting with respiratory specialists</div>
                 <span className="vm-layer-tag">Phase 3</span>
               </div>
               <div className="vm-layer-body">
                 <p>
-                  Certified physicians — starting with respiratory specialists — interact with the
+                  Certified physicians, starting with respiratory specialists, interact with the
                   model&apos;s findings. They review the deviations surfaced by Layer 2, confirm or
                   correct them, add clinical context, and contribute annotated cases back to the
                   training data. As the reference expands to new organ systems, so does the network.
@@ -237,7 +237,7 @@ export default function VisionPage() {
                   Each expert interaction makes the model more accurate and more specific. Better
                   model output leads to better patient matching leads to more expert engagement
                   leads to better model. This is the flywheel that makes the platform progressively
-                  more valuable as it scales — not a static tool that plateaus, but a system that
+                  more valuable as it scales, not a static tool that plateaus, but a system that
                   compounds.
                 </p>
               </div>
@@ -248,21 +248,21 @@ export default function VisionPage() {
               <div>
                 <div className="vm-layer-label">Treatment intelligence</div>
                 <h3 className="vm-layer-title">The destination</h3>
-                <div className="vm-layer-who">Who — Clinicians · Researchers · Drug developers</div>
-                <span className="vm-layer-tag">Phase 4 — Future</span>
+                <div className="vm-layer-who">Who, Clinicians · Researchers · Drug developers</div>
+                <span className="vm-layer-tag">Phase 4, Future</span>
               </div>
               <div className="vm-layer-body">
                 <p>
                   Because the model knows what healthy looks like and can precisely describe what
                   has broken down, it can reason about how to reverse the breakdown. Layer 4
                   generates evidence-based treatment directions grounded in the specific biological
-                  deviation — not generic protocols derived from population averages.
+                  deviation, not generic protocols derived from population averages.
                 </p>
                 <p>
                   For known mechanisms, the model surfaces targeted interventions ranked by target
                   quality and evidence. For novel or poorly understood patterns, it characterises
                   the mechanism in a form that can inform drug design. This layer does not exist
-                  yet. It is powered by Layers 2 and 3 being sufficiently mature — and it is the
+                  yet. It is powered by Layers 2 and 3 being sufficiently mature, and it is the
                   reason we are building in sequence.
                 </p>
               </div>
@@ -339,7 +339,7 @@ export default function VisionPage() {
                 No curated gene lists. No manually written disease signatures. No expert opinion
                 baked into the reference. Every statistic the model holds is computed from real
                 human cell data. If we cannot derive it from the data, we do not make it. This is
-                not a methodological preference — it is the only way to build a model that can be
+                not a methodological preference, it is the only way to build a model that can be
                 systematically extended and verified.
               </p>
             </div>
@@ -348,7 +348,7 @@ export default function VisionPage() {
               <h3>Describe biology. Defer naming.</h3>
               <p>
                 The model returns deviations. Experts name diseases. This boundary is load-bearing.
-                A model that returns diagnosis strings has taken on liability it cannot carry — one
+                A model that returns diagnosis strings has taken on liability it cannot carry, one
                 that will be wrong in ways that cannot be traced or corrected. We describe what
                 the cells show. We do not tell clinicians what to conclude from it. That judgment
                 is theirs and always will be.
@@ -369,7 +369,7 @@ export default function VisionPage() {
               <h3>Healthy before disease</h3>
               <p>
                 The reference model is built exclusively from cells labelled normal. We do not
-                train on disease cells — we reserve them for validation. This is the methodological
+                train on disease cells, we reserve them for validation. This is the methodological
                 insight at the centre of everything: a system that deeply understands healthy can
                 detect any deviation from it without being told what diseases to look for. The
                 reference is the asset.
@@ -391,7 +391,7 @@ export default function VisionPage() {
               <h3>Respiratory is the start, not the scope</h3>
               <p>
                 The Human Lung Cell Atlas gave us the data to begin. The clinical need was clear.
-                The method we have built does not depend on the lung — it depends on having a
+                The method we have built does not depend on the lung, it depends on having a
                 high-quality cell atlas to build from. As atlases for other organ systems mature,
                 we expand. The architecture is organ-agnostic. The mission is full-body biological
                 intelligence.
@@ -408,8 +408,8 @@ export default function VisionPage() {
             Be part of<br /><em>the reference.</em>
           </h2>
           <p>
-            We are working with research institutions, pulmonology groups, and hospital systems.
-            Clinical preview is open. If you want early access, reach out directly.
+            We are building toward early access for research institutions, pulmonology groups,
+            and hospital systems. If you want to be involved from the start, reach out directly.
           </p>
           <div className="vm-cta-actions">
             <a className="btn btn-primary" href="/#cta">Request access <span className="arrow">→</span></a>
@@ -436,11 +436,11 @@ export default function VisionPage() {
                     />
                   </svg>
                 </span>
-                ORBREGEN
+                Senebiclabs
               </a>
               <p style={{ marginTop: "18px", maxWidth: "300px", lineHeight: "1.6", color: "var(--slate)", fontSize: "13.5px" }}>
                 Biological intelligence connecting patients, clinicians,
-                and the research community — starting with respiratory.
+                and the research community, starting with respiratory.
               </p>
             </div>
             <div>
@@ -448,7 +448,7 @@ export default function VisionPage() {
               <ul>
                 <li><a href="/#patient">For Patients</a></li>
                 <li><a href="/#clinic">For Clinicians</a></li>
-                <li><a href="/#engine">AI Engine</a></li>
+                <li><a href="/#engine">Detection Engine</a></li>
                 <li><a href="#">Research API</a></li>
               </ul>
             </div>
@@ -472,7 +472,7 @@ export default function VisionPage() {
             </div>
           </div>
           <div className="legal">
-            <span>© 2026 ORBREGEN Inc. · All rights reserved</span>
+            <span>© 2026 Senebiclabs Inc. · All rights reserved</span>
             <span>Built for the air we share.</span>
           </div>
         </div>

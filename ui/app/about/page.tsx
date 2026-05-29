@@ -1,253 +1,257 @@
-import NavBar from '../components/NavBar';
+import NavBar from '../components/NavBar'
+import FooterSection from '../components/sections/FooterSection'
+
+const W: React.CSSProperties = { maxWidth: 1100, margin: '0 auto', padding: '0 48px' }
+
+const Label = ({ children }: { children: string }) => (
+  <span style={{
+    fontFamily: 'Geist Mono, monospace',
+    fontSize: 13,
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase' as const,
+    color: 'var(--slate)',
+    display: 'block',
+    marginBottom: 20,
+  }}>
+    {children}
+  </span>
+)
 
 export default function AboutPage() {
   return (
     <>
-      <NavBar active="about" />
+      <NavBar />
 
       {/* HERO */}
-      <section className="about-hero noise">
-        <div className="wrap">
-          <span className="micro">About us</span>
-          <h1 className="about-headline">
-            Built to understand<br /><em>healthy human biology.</em>
+      <section style={{ padding: '180px 0 100px' }}>
+        <div style={W}>
+          <Label>About us</Label>
+          <h1 style={{
+            fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+            fontWeight: 100,
+            fontSize: 'clamp(44px, 6.5vw, 88px)',
+            lineHeight: 1.05,
+            letterSpacing: '0.025em',
+            maxWidth: 860,
+            marginBottom: 48,
+          }}>
+            We believe every disease can be detected before it takes hold.
           </h1>
-          <p className="about-sub">
-            ORBREGEN is a biological intelligence platform built on one foundational
-            insight: if a system deeply understands what a healthy human body looks
-            like at the cellular level, it can detect anything that deviates from
-            that — and eventually guide the correction of it. We are starting with
-            the respiratory system.
+          <p style={{
+            fontWeight: 300,
+            fontSize: 'clamp(19px, 1.9vw, 22px)',
+            color: 'var(--slate)',
+            lineHeight: 1.8,
+            maxWidth: 580,
+          }}>
+            Senebiclabs is a biological intelligence company. We are building a system
+            that understands what a healthy human body looks like at its most
+            fundamental level — so that anything departing from it can be seen,
+            described, and eventually corrected. We start with the lung.
           </p>
         </div>
       </section>
 
-      {/* ORIGIN */}
-      <section className="about-origin">
-        <div className="wrap">
-          <div className="about-origin-grid">
-            <div>
-              <span className="micro">The origin</span>
-              <h2 className="about-section-title" style={{ marginTop: "24px" }}>
-                A question no one<br />had properly answered.
+      {/* THE STORY */}
+      <section style={{ padding: '100px 0', borderTop: '1px solid var(--hairline)' }}>
+        <div style={W}>
+          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 80, alignItems: 'start' } as React.CSSProperties}>
+            <div style={{ position: 'sticky', top: 120 } as React.CSSProperties}>
+              <Label>Where we started</Label>
+              <h2 style={{
+                fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+                fontWeight: 100,
+                fontSize: 'clamp(26px, 2.8vw, 38px)',
+                lineHeight: 1.2,
+                letterSpacing: '0.02em',
+              }}>
+                A question that had no answer.
               </h2>
             </div>
-            <div className="about-origin-body">
-              <p>
-                We began with a question that sounds simple and isn&apos;t: what does
-                a healthy human body actually look like — not at the organ level, not
-                at the tissue level, but at the level of individual cells, across
-                every donor, every tissue, every condition?
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+              <p style={{ fontSize: 20, lineHeight: 1.85, color: 'var(--ink)', fontWeight: 300 }}>
+                We started with a question that sounds deceptively simple: what does a
+                healthy human body actually look like? Not in general terms. Not as a
+                textbook diagram. But precisely — at the level of individual cells,
+                across real people, with all their variation.
               </p>
-              <p>
-                The respiratory system is where we started — the data existed, the
-                clinical need was clear, and the Human Lung Cell Atlas gave us
-                2.28 million annotated human lung cells to build from. We built our
-                reference from the normal cells in that atlas, computing statistics
-                from the data, not writing them by hand.
+              <p style={{ fontSize: 19, lineHeight: 1.85, color: 'var(--slate)', fontWeight: 300 }}>
+                Nobody had a complete answer. Medicine has always worked the other way around —
+                studying disease to understand what went wrong, rather than studying health
+                to know what right looks like. That gap is the reason diagnoses come late.
+                It is the reason patients get mismatched. It is the reason treatments
+                are designed for averages rather than individuals.
               </p>
-              <p>
-                From that reference, everything else follows. A system that knows
-                what healthy looks like at cellular resolution can describe any
-                deviation from it — without being told what to look for. The
-                same method applies to every organ system.
+              <p style={{ fontSize: 19, lineHeight: 1.85, color: 'var(--slate)', fontWeight: 300 }}>
+                We decided to build the reference that was missing. Starting with the
+                respiratory system, where the data existed to do it properly, we built
+                a biological model of what healthy looks like at the cellular level.
+                Everything computed from real human cells. Nothing hardcoded.
+                Nothing curated by hand.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FOUNDING INSIGHT */}
-      <section className="about-insight noise">
-        <div className="wrap">
-          <p className="about-insight-quote">
-            &ldquo;Most medical AI learns from labels.<br />We learned from cells.&rdquo;
+      {/* WHAT WE'RE BUILDING */}
+      <section style={{ padding: '100px 0', borderTop: '1px solid var(--hairline)' }}>
+        <div style={W}>
+          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 80, alignItems: 'start' } as React.CSSProperties}>
+            <div style={{ position: 'sticky', top: 120 } as React.CSSProperties}>
+              <Label>What we are building</Label>
+              <h2 style={{
+                fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+                fontWeight: 100,
+                fontSize: 'clamp(26px, 2.8vw, 38px)',
+                lineHeight: 1.2,
+                letterSpacing: '0.02em',
+              }}>
+                A platform that connects the science to the people who need it.
+              </h2>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+              <p style={{ fontSize: 20, lineHeight: 1.85, color: 'var(--ink)', fontWeight: 300 }}>
+                The intelligence engine is the core. It takes a biological sample and
+                describes precisely what has changed from healthy — which cell populations
+                are out of proportion, which biological processes are disrupted, and how
+                far each finding sits from the normal range. Clear. Traceable. Grounded
+                in real human biology.
+              </p>
+              <p style={{ fontSize: 19, lineHeight: 1.85, color: 'var(--slate)', fontWeight: 300 }}>
+                On top of that, we are building a network of specialists — respiratory
+                physicians and researchers who interact with the model's findings, add
+                clinical judgment, and help it get sharper over time. The model does not
+                name diseases. Specialists do. We are deliberate about that boundary.
+              </p>
+              <p style={{ fontSize: 19, lineHeight: 1.85, color: 'var(--slate)', fontWeight: 300 }}>
+                And for patients, we are building a portal: describe your symptoms,
+                get matched to the right specialist for your specific situation.
+                Not a generic referral. A match built on what the biology suggests.
+              </p>
+              <p style={{ fontSize: 19, lineHeight: 1.85, color: 'var(--slate)', fontWeight: 300 }}>
+                The respiratory system is where we start. Every organ system follows.
+                That is the scope of what we are working toward.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* QUOTE */}
+      <section style={{ padding: '100px 0', borderTop: '1px solid var(--hairline)', textAlign: 'center' }}>
+        <div style={W}>
+          <p style={{
+            fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+            fontWeight: 100,
+            fontStyle: 'italic',
+            fontSize: 'clamp(26px, 3.5vw, 50px)',
+            lineHeight: 1.25,
+            letterSpacing: '0.02em',
+            color: 'var(--ink)',
+            maxWidth: 800,
+            margin: '0 auto',
+          }}>
+            &ldquo;Most clinical software learns from disease.<br />
+            We learned from health.&rdquo;
           </p>
         </div>
       </section>
 
-      {/* NUMBERS — all from CLAUDE.md */}
-      <section className="about-numbers">
-        <div className="wrap">
-          <div className="about-numbers-grid">
-            <div className="about-stat">
-              <div className="about-stat-k">2.28<span>M</span></div>
-              <div className="about-stat-l">Human lung cells in the reference model</div>
-            </div>
-            <div className="about-stat">
-              <div className="about-stat-k">16</div>
-              <div className="about-stat-l">Disease states present in the atlas</div>
-            </div>
-            <div className="about-stat">
-              <div className="about-stat-k">55,329</div>
-              <div className="about-stat-l">Genes profiled across the full dataset</div>
-            </div>
-            <div className="about-stat">
-              <div className="about-stat-k">4</div>
-              <div className="about-stat-l">Interconnected layers of intelligence</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* APPROACH */}
-      <section className="about-approach">
-        <div className="wrap">
-          <div className="about-approach-head">
-            <span className="micro">How we work</span>
-            <h2 className="about-section-title" style={{ marginTop: "24px" }}>
-              Three commitments we<br />hold without exception.
-            </h2>
-          </div>
-          <div className="about-approach-grid">
-            <div className="about-commit">
-              <div className="about-commit-n">I</div>
-              <h3>Compute what others curate</h3>
-              <p>
-                Nothing biological is hardcoded. No curated gene lists, no
-                manually written disease signatures. Every reference statistic
-                comes from the HLCA cells. If we cannot derive it from the
-                data, we do not make it.
-              </p>
-            </div>
-            <div className="about-commit">
-              <div className="about-commit-n">II</div>
-              <h3>Surface findings, defer to experts</h3>
-              <p>
-                The model describes biology. Experts name diseases. We are
-                rigorous about this boundary — the API returns deviations,
-                Z-scores, and pathway states. It does not return disease
-                names. Clinical judgment belongs to a clinician.
-              </p>
-            </div>
-            <div className="about-commit">
-              <div className="about-commit-n">III</div>
-              <h3>Build the flywheel before the product</h3>
-              <p>
-                Patient matching is only as good as the underlying model.
-                The model is only as good as the expert feedback that refines
-                it. We build in sequence — Layer 2 before Layer 1, reference
-                before matching, understanding before treatment.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* TEAM — placeholder until real info is provided */}
-      <section className="about-team">
-        <div className="wrap">
-          <span className="micro">The team</span>
-          <h2 className="about-section-title" style={{ marginTop: "24px", marginBottom: "32px" }}>
-            Small by design.<br /><em>Deep by necessity.</em>
+      {/* HOW WE WORK */}
+      <section style={{ padding: '100px 0', borderTop: '1px solid var(--hairline)' }}>
+        <div style={W}>
+          <Label>How we work</Label>
+          <h2 style={{
+            fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+            fontWeight: 100,
+            fontSize: 'clamp(28px, 3.5vw, 44px)',
+            lineHeight: 1.15,
+            letterSpacing: '0.02em',
+            marginBottom: 72,
+            maxWidth: 540,
+          }}>
+            A few things we refuse to compromise on.
           </h2>
-          <p style={{ fontSize: "16px", lineHeight: "1.65", color: "var(--slate)", maxWidth: "560px" }}>
-            Team details coming soon.
-          </p>
-        </div>
-      </section>
-
-      {/* CONTACT */}
-      <section className="about-join noise">
-        <div className="wrap">
-          <div className="about-join-inner">
-            <div>
-              <span className="micro">Get in touch</span>
-              <h2 className="about-section-title" style={{ marginTop: "24px" }}>
-                Work with us.
-              </h2>
-              <p style={{ marginTop: "18px", fontSize: "16px", lineHeight: "1.65", color: "var(--slate)", maxWidth: "440px" }}>
-                We are working with research institutions, pulmonology groups,
-                and hospital systems. If you want to be part of the clinical
-                preview, reach out directly.
-              </p>
-            </div>
-            <div className="open-roles">
-              <a className="role" href="/#cta">
-                <div>
-                  <div className="role-title">Clinical partners</div>
-                  <div className="role-meta">Pulmonology groups · Hospital systems · Research institutions</div>
-                </div>
-                <span className="role-arrow">→</span>
-              </a>
-              <a className="role" href="/#cta">
-                <div>
-                  <div className="role-title">Research API access</div>
-                  <div className="role-meta">Academic labs · Non-commercial use · Data-use agreement</div>
-                </div>
-                <span className="role-arrow">→</span>
-              </a>
-              <a className="role" href="/#cta">
-                <div>
-                  <div className="role-title">Expert network</div>
-                  <div className="role-meta">Certified respiratory physicians · Annotators · Advisors</div>
-                </div>
-                <span className="role-arrow">→</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer>
-        <div className="wrap">
-          <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: "64px" }}>
-            <div>
-              <a className="brand" href="/">
-                <span className="mark">
-                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                    <path
-                      d="M2 11 Q 5 11 6 8 T 9 11 T 12 14 T 15 8 T 18 11 L 20 11"
-                      stroke="currentColor"
-                      strokeWidth="1.4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      fill="none"
-                    />
-                  </svg>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 48,
+            borderTop: '1px solid var(--hairline)',
+            paddingTop: 64,
+          } as React.CSSProperties}>
+            {[
+              {
+                n: 'I',
+                title: 'The data decides',
+                body: 'Nothing biological is hardcoded. No manually written rules, no curated assumptions. Every reference statistic is computed from real human cells. If we cannot derive it from the data, we do not use it.',
+              },
+              {
+                n: 'II',
+                title: 'The model describes. People judge.',
+                body: 'The system surfaces deviations. Clinicians interpret them. We are strict about this line — the model does not diagnose and we will never design it to. Clinical judgment belongs to clinicians.',
+              },
+              {
+                n: 'III',
+                title: 'Get the foundation right first',
+                body: 'Patient matching is only as good as the model beneath it. The model is only as good as the clinical feedback that refines it. We build in sequence and do not rush any layer to serve another.',
+              },
+            ].map((c) => (
+              <div key={c.n} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                <span style={{
+                  fontFamily: 'Geist Mono, monospace',
+                  fontSize: 12,
+                  color: 'var(--slate)',
+                  letterSpacing: '0.14em',
+                  opacity: 0.5,
+                }}>
+                  {c.n}
                 </span>
-                ORBREGEN
-              </a>
-              <p style={{ marginTop: "18px", maxWidth: "300px", lineHeight: "1.6", color: "var(--slate)", fontSize: "13.5px" }}>
-                Biological intelligence connecting patients, clinicians,
-                and the research community — starting with respiratory.
-              </p>
-            </div>
-            <div>
-              <h5>Platform</h5>
-              <ul>
-                <li><a href="/#patient">For Patients</a></li>
-                <li><a href="/#clinic">For Clinicians</a></li>
-                <li><a href="/#engine">AI Engine</a></li>
-                <li><a href="#">Research API</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5>Company</h5>
-              <ul>
-                <li><a href="/about">About</a></li>
-                <li><a href="#">Research</a></li>
-                <li><a href="#">Careers</a></li>
-                <li><a href="#">Press</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5>Trust</h5>
-              <ul>
-                <li><a href="#">Privacy</a></li>
-                <li><a href="#">Data ethics</a></li>
-                <li><a href="#">Security</a></li>
-                <li><a href="#">Regulatory</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="legal">
-            <span>© 2026 ORBREGEN Inc. · All rights reserved</span>
-            <span>Built for the air we share.</span>
+                <h3 style={{
+                  fontFamily: 'Geist, sans-serif',
+                  fontSize: 20,
+                  fontWeight: 500,
+                  letterSpacing: '-0.01em',
+                  lineHeight: 1.3,
+                  color: 'var(--ink)',
+                }}>
+                  {c.title}
+                </h3>
+                <p style={{ fontSize: 15, lineHeight: 1.85, color: 'var(--slate)', fontWeight: 300 }}>
+                  {c.body}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* GET IN TOUCH */}
+      <section style={{ padding: '100px 0', borderTop: '1px solid var(--hairline)' }}>
+        <div style={W}>
+          <Label>Get in touch</Label>
+          <h2 style={{
+            fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+            fontWeight: 100,
+            fontSize: 'clamp(32px, 3.8vw, 52px)',
+            lineHeight: 1.1,
+            letterSpacing: '0.02em',
+            marginBottom: 24,
+            maxWidth: 560,
+          }}>
+            We want to hear from you.
+          </h2>
+          <p style={{ fontSize: 19, lineHeight: 1.85, color: 'var(--slate)', fontWeight: 300, maxWidth: 520, marginBottom: 52 }}>
+            Whether you are a patient, a specialist, a researcher, or simply someone
+            who thinks we are asking the right question — reach out. We read everything.
+          </p>
+          <a href="mailto:godwinyampoi449@gmail.com" className="nav-join-cta">
+            Send us a message →
+          </a>
+        </div>
+      </section>
+
+      <FooterSection />
     </>
-  );
+  )
 }
