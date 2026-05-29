@@ -22,7 +22,6 @@ export default function NavBar({ active }: { active?: 'home' | 'patients' | 'abo
           <a href="/patients"   style={active === 'patients'   ? { color: 'var(--ink)' } : {}}>Patients</a>
           <a href="/experts"    style={active === 'experts'    ? { color: 'var(--ink)' } : {}}>Specialists</a>
           <a href="/contribute" style={active === 'contribute' ? { color: 'var(--ink)' } : {}}>Contribute</a>
-          <a href="/analyse"    style={active === 'analyse'    ? { color: 'var(--ink)' } : {}}>Research</a>
           <a href="/about"      style={active === 'about'      ? { color: 'var(--ink)' } : {}}>About</a>
         </div>
 

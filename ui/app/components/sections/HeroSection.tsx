@@ -48,8 +48,8 @@ export default function HeroSection() {
       </p>
 
       <div style={{ display: 'flex', gap: 40, alignItems: 'center', justifyContent: 'center' }}>
-        <a href="/analyse" className="iso-cta">Open the research tool →</a>
-        <a href="/experts" className="iso-cta iso-cta--muted">Join as specialist →</a>
+        <a href="/experts" className="iso-cta">Join as specialist →</a>
+        <a href="/patients" className="iso-cta iso-cta--muted">For patients →</a>
       </div>
 
     </section>
