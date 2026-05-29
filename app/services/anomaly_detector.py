@@ -13,9 +13,12 @@ The detector does not name diseases. It characterises biology.
 Clinical interpretation belongs to the expert in Layer 3.
 """
 
+import json
 import logging
+import re
 from datetime import datetime, timezone
 
+from app.core.config import settings
 from app.core.exceptions import InsufficientGenesError, ModelNotBuiltError
 from app.models.schemas import (
     CellTypeDeviation,
@@ -24,10 +27,158 @@ from app.models.schemas import (
     FetalReactivation,
     GeneDeviation,
     PathwayDeviation,
+    SpatialContext,
+    SpatialGeneContext,
 )
 from app.services.respiratory_model import RespiratoryModel, load_model
 
 logger = logging.getLogger(__name__)
+
+# ── Input validation ───────────────────────────────────────────────────────────
+
+_ENSEMBL_RE = re.compile(r'^ENSG\d{11}$', re.IGNORECASE)
+
+# Non-lung tissue marker sets — elevated presence signals wrong tissue
+_BLOOD_MARKERS  = {'HBB', 'HBA1', 'HBA2', 'GYPA', 'GYPB', 'ANK1', 'SPTA1'}
+_LIVER_MARKERS  = {'ALB', 'AFP', 'APOA1', 'APOB', 'CYP3A4', 'CYP2E1', 'CYP2C9'}
+_KIDNEY_MARKERS = {'UMOD', 'AQP2', 'CUBN', 'SLC12A1', 'CLCNKA'}
+_BRAIN_MARKERS  = {'SYP', 'MAP2', 'GFAP', 'NEFL', 'MBP', 'RBFOX3'}
+_MUSCLE_MARKERS = {'MYH2', 'MYH7', 'TNNI3', 'ACTC1', 'TNNC1', 'MYL2'}
+
+# Canonical lung markers — a lung-derived sample should contain some of these
+_LUNG_MARKERS = {
+    'SFTPC', 'SFTPB', 'AGER', 'SCGB1A1', 'MUC5B', 'MUC5AC',
+    'FOXJ1', 'TP63', 'COL1A1', 'PECAM1', 'PTPRC', 'EPCAM',
+}
+
+
+def _validate_input(gene_expression: dict[str, float]) -> list[str]:
+    """
+    Sanity-check submitted gene expression data before running analysis.
+
+    Hard errors  → raise ValueError  (analysis is aborted)
+    Soft warnings → returned as list  (analysis still runs, warnings surfaced in report)
+    """
+    warnings: list[str] = []
+    genes  = set(gene_expression.keys())
+    values = list(gene_expression.values())
+
+    # 1. Negative values — hard error
+    neg = [g for g, v in gene_expression.items() if v < 0]
+    if neg:
+        raise ValueError(
+            f"Negative expression values submitted for: {', '.join(neg[:5])}. "
+            "Gene expression must be ≥ 0. In log1p CP10K scale all values are non-negative."
+        )
+
+    # 2. Ensembl IDs — hard error (zero matches against reference)
+    ensembl = [g for g in genes if _ENSEMBL_RE.match(g)]
+    if len(ensembl) > len(genes) * 0.3:
+        raise ValueError(
+            f"{len(ensembl)} of {len(genes)} submitted gene names appear to be Ensembl IDs "
+            f"(e.g. {ensembl[0]}). "
+            "This model uses HGNC gene symbols (e.g. COL1A1, SFTPC). "
+            "Convert with biomaRt (R) or mygene.info (Python) before submitting."
+        )
+
+    # 3. Scale check — raw counts vs log1p CP10K
+    #    In log1p CP10K space: log1p(10000) ≈ 9.2, so values >10 are rare for most genes.
+    #    Values >100 essentially never appear in correctly normalised data.
+    n_above_100 = sum(1 for v in values if v > 100)
+    n_above_10  = sum(1 for v in values if v > 10)
+    pct_above_10 = n_above_10 / len(values)
+
+    if n_above_100 > 0:
+        warnings.append(
+            f"Scale warning — {n_above_100} gene(s) have values above 100. "
+            "In log1p CP10K space this is not possible (max ≈ 9.2). "
+            "This looks like raw counts or CP10K without log-transformation. "
+            "Select the correct data format in the normalisation picker — "
+            "results will be unreliable until this is corrected."
+        )
+    elif pct_above_10 > 0.3:
+        warnings.append(
+            f"Scale warning — {n_above_10} of {len(values)} genes ({pct_above_10*100:.0f}%) "
+            "have values above 10. In log1p CP10K space this is unusual (typical range 0–9). "
+            "Verify your data format — raw counts will produce incorrect Z-scores."
+        )
+
+    # 4. Non-lung tissue marker detection
+    tissue_sets = [
+        ('blood',  'erythrocyte / haematopoietic', _BLOOD_MARKERS),
+        ('liver',  'hepatocyte',                   _LIVER_MARKERS),
+        ('kidney', 'nephron',                      _KIDNEY_MARKERS),
+        ('brain',  'neural',                       _BRAIN_MARKERS),
+        ('muscle', 'myocyte',                      _MUSCLE_MARKERS),
+    ]
+    for tissue, cell_label, markers in tissue_sets:
+        present_and_elevated = [
+            g for g in markers & genes
+            if gene_expression[g] > 1.5   # meaningfully expressed, not trace
+        ]
+        if len(present_and_elevated) >= 2:
+            warnings.append(
+                f"Tissue origin warning — {tissue.capitalize()} markers detected at elevated levels: "
+                f"{', '.join(sorted(present_and_elevated))}. "
+                f"This model compares against a lung cell reference. "
+                f"If this sample is from {tissue} tissue, deviations reflect lung-vs-{tissue} "
+                "biology, not respiratory disease."
+            )
+
+    # 5. Lung marker presence — if many genes submitted but no lung markers found
+    lung_present = _LUNG_MARKERS & genes
+    if len(genes) >= 50 and len(lung_present) == 0:
+        warnings.append(
+            "Tissue origin warning — none of the canonical lung marker genes are present "
+            f"({', '.join(sorted(_LUNG_MARKERS)[:6])}…). "
+            "If this is not a lung sample, comparisons against the lung reference will be misleading."
+        )
+
+    # 6. Very low gene count warning (below threshold but above the hard minimum)
+    if 10 <= len(genes) < 20:
+        warnings.append(
+            f"Coverage warning — only {len(genes)} genes submitted. "
+            "Cell type composition and pathway estimates require more genes to be reliable. "
+            "Gene-level Z-scores are still computed for matched genes."
+        )
+
+    return warnings
+
+
+# ── Spatial baselines ──────────────────────────────────────────────────────────
+
+_spatial_baselines: dict | None = None
+
+
+def _load_spatial_baselines() -> dict | None:
+    """Load spatial_baselines.json once and cache it. Returns None if not available."""
+    global _spatial_baselines
+    if _spatial_baselines is not None:
+        return _spatial_baselines
+    path = settings.RESPIRATORY_MODEL_DIR / "spatial_baselines.json"
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text())
+        # Validate it's the real artefact, not the placeholder
+        if data.get("bronchus", {}).get("status") == "not_computed":
+            logger.warning("spatial_baselines.json is a placeholder — spatial context disabled")
+            return None
+        n_b = len(data.get("bronchus", {}).get("overall", {}))
+        if n_b < 100:
+            logger.warning(
+                "spatial_baselines.json has only %d bronchus genes — "
+                "likely the pre-fix version. Download the updated file from Drive.", n_b
+            )
+            return None
+        _spatial_baselines = data
+        logger.info("Spatial baselines loaded: %d bronchus genes, %d parenchyma genes",
+                    n_b, len(data.get("parenchyma", {}).get("overall", {})))
+        return _spatial_baselines
+    except Exception as exc:
+        logger.warning("Could not load spatial_baselines.json: %s", exc)
+        return None
+
 
 # ── Thresholds ─────────────────────────────────────────────────────────────────
 MIN_GENES                = 10    # minimum genes required (lowered for dev testing)
@@ -82,6 +233,9 @@ def analyse(sample_id: str, gene_expression: dict[str, float]) -> DeviationRepor
     if len(gene_expression) < MIN_GENES:
         raise InsufficientGenesError(len(gene_expression), MIN_GENES)
 
+    # Run input sanity checks — hard errors abort; soft warnings surface in report
+    data_quality_warnings = _validate_input(gene_expression)
+
     model = _get_model()
 
     cell_devs    = _analyse_cell_types(gene_expression, model)
@@ -91,6 +245,10 @@ def analyse(sample_id: str, gene_expression: dict[str, float]) -> DeviationRepor
     ct_impairs   = _analyse_ct_gene_impairments(gene_expression, model)
     score        = _overall_score(cell_devs, gene_devs, pathway_devs, fetal_result, ct_impairs)
     summary      = _build_summary(score, cell_devs, gene_devs, pathway_devs, fetal_result, ct_impairs)
+
+    # Dimension 6: spatial context (no-op if spatial_baselines.json not yet downloaded)
+    spatial_data    = _load_spatial_baselines()
+    spatial_context = _analyse_spatial_context(gene_devs, spatial_data) if spatial_data else None
 
     return DeviationReport(
         sample_id               = sample_id,
@@ -102,6 +260,8 @@ def analyse(sample_id: str, gene_expression: dict[str, float]) -> DeviationRepor
         pathway_deviations      = pathway_devs,
         fetal_reactivation      = fetal_result,
         ct_impairments          = ct_impairs,
+        spatial_context         = spatial_context,
+        data_quality_warnings    = data_quality_warnings,
         healthy_reference_cells  = model.n_cells,
         healthy_reference_donors = model.n_donors,
         model_built_at           = model.built_at,
@@ -118,9 +278,10 @@ def _score_cell_type(
     """
     Estimate cell type presence using specificity-weighted marker genes.
 
-    A gene contributes only if it is enriched ≥1.0 log1p CP10K above the
-    whole-lung global mean. This filters out housekeeping genes (expressed
-    everywhere) and weak markers (span too small to be noise-resistant).
+    A gene contributes only if it is enriched ≥2.0 log1p CP10K above the
+    whole-lung global mean AND at least CT_MIN_GENES_TESTED such genes agree.
+    This filters out housekeeping genes, weak markers, and shared markers
+    (e.g. VWF elevated by angiogenesis but not specific to EC expansion).
     The contribution measures how far the sample sits between the global
     baseline and the cell-type-specific level:
 
@@ -137,11 +298,16 @@ def _score_cell_type(
         ct_mean     = stats["mean"]
         global_mean = global_gene_stats.get(gene, {}).get("mean", 0.0)
         span        = ct_mean - global_mean
-        if span < 1.0:
-            continue  # require ≥1 log1p unit enrichment above whole-lung mean
+        if span < 2.0:
+            continue  # require ≥2 log1p units above whole-lung mean — filters weak/shared markers
         contribution = (genes[gene] - global_mean) / (span + 1e-6)
         scores.append(max(0.0, min(1.0, contribution)))
-    return float(sum(scores) / len(scores)) if scores else 0.0
+    # Require a minimum number of highly-specific markers to agree before scoring.
+    # Without this, one shared gene (e.g. VWF elevated by angiogenesis) can falsely
+    # inflate an EC fraction even when actual EC content is unchanged.
+    if len(scores) < CT_MIN_GENES_TESTED:
+        return 0.0
+    return float(sum(scores) / len(scores))
 
 
 def _analyse_cell_types(genes: dict[str, float], model: RespiratoryModel) -> list[CellTypeDeviation]:
@@ -155,8 +321,11 @@ def _analyse_cell_types(genes: dict[str, float], model: RespiratoryModel) -> lis
         estimated    = _score_cell_type(genes, marker_stats, model.gene_stats)
         mu           = comp["mean_fraction"]
         std          = comp["std_fraction"]
-        effective_std = max(std, 0.01)   # floor: prevents Z-explosion for rare types (std≈0.001)
-        z            = (estimated - mu) / (effective_std + 1e-6)
+        # Floor scales with the mean so rare types (mu≈0) don't produce Z-explosions.
+        # A cell type at 0.1% of tissue cannot meaningfully deviate 100σ.
+        effective_std = max(std, max(mu * 0.5, 0.005))
+        raw_z        = (estimated - mu) / (effective_std + 1e-6)
+        z            = max(-20.0, min(20.0, raw_z))  # cap: no Z above ±20 is biologically meaningful
         direction = "normal"
         if abs(z) >= 1.5:
             direction = "expanded" if z > 0 else "depleted"
@@ -173,6 +342,9 @@ def _analyse_cell_types(genes: dict[str, float], model: RespiratoryModel) -> lis
             interpretation        = _cell_type_interpretation(ct, direction, _magnitude(z)),
         ))
 
+    # Only surface cell types present at meaningful levels in healthy tissue.
+    # Rare types (mean < 0.3%) produce noisy Z-scores even after the std floor.
+    deviations = [d for d in deviations if d.healthy_mean_fraction >= 0.003 or d.direction == "normal"]
     deviations.sort(key=lambda d: abs(d.z_score), reverse=True)
     return deviations
 
@@ -208,17 +380,39 @@ def _analyse_genes(genes: dict[str, float], model: RespiratoryModel) -> list[Gen
             continue
         mu  = stats["mean"]
         std = stats["std"]
-        z   = (value - mu) / (std + 1e-6)
+
+        # Near-zero baseline genes (disease-inducible: TNF, CXCL10, IFNG, SPP1 etc.)
+        # These are nearly silent in healthy tissue — any meaningful expression is
+        # a strong signal. Use an effective std floor so Z-scores stay interpretable
+        # rather than reaching thousands.
+        #
+        # Floor logic:
+        #   - Constitutively expressed genes (mu >= 0.1):  use real std, min 10% of mean
+        #   - Lowly expressed genes (0.01 <= mu < 0.1):   floor std at 0.05
+        #   - Near-silent genes (mu < 0.01):               floor std at 0.03
+        #
+        # Z-scores are then capped at ±30 — beyond that the gene is simply
+        # "expressed above detection threshold" and the precise number adds nothing.
+        if mu >= 0.1:
+            effective_std = max(std, mu * 0.1)
+        elif mu >= 0.01:
+            effective_std = max(std, 0.05)
+        else:
+            effective_std = max(std, 0.03)
+
+        raw_z = (value - mu) / effective_std
+        z     = max(-30.0, min(30.0, raw_z))   # cap — Z > ±30 = "beyond healthy range"
+
         if abs(z) < Z_REPORT_THRESHOLD:
             continue
         direction = "elevated" if z > 0 else "suppressed"
         deviations.append(GeneDeviation(
             gene         = gene,
             sample_value = round(value, 3),
-            healthy_mean = round(mu, 3),
-            healthy_std  = round(std, 3),
-            healthy_p5   = round(stats.get("p5", 0.0), 3),
-            healthy_p95  = round(stats.get("p95", 0.0), 3),
+            healthy_mean = round(mu, 4),
+            healthy_std  = round(std, 4),
+            healthy_p5   = round(stats.get("p5", 0.0), 4),
+            healthy_p95  = round(stats.get("p95", 0.0), 4),
             z_score      = round(z, 2),
             direction    = direction,
             magnitude    = _magnitude(z),
@@ -416,6 +610,20 @@ def _analyse_ct_gene_impairments(
     impairments = []
 
     for ct_name, ct_stats in model.ct_gene_stats.items():
+        # Impairment is only meaningful when the cell type is demonstrably present
+        # in the sample. In bulk RNA-seq, CT marker genes are diluted by all other
+        # cell types — so a healthy sample with 5% AT2 cells will always look
+        # "suppressed" against the AT2-cell-specific baseline (~6.0 log1p).
+        # Gate: estimated fraction must be ≥ 50% of the healthy mean fraction.
+        # Below that, we cannot distinguish impairment from normal dilution.
+        profile           = model.cell_type_profiles.get(ct_name, {})
+        marker_stats      = profile.get("marker_gene_stats", {})
+        estimated_frac    = _score_cell_type(genes, marker_stats, model.gene_stats)
+        comp              = model.composition.get(ct_name, {})
+        healthy_mean_frac = comp.get("mean_fraction", 0.0)
+        if healthy_mean_frac > 0 and estimated_frac < 0.5 * healthy_mean_frac:
+            continue  # cell type not well-represented; suppression indistinguishable from dilution
+
         tested: list[tuple[str, float]] = []
         suppressed: list[tuple[str, float]] = []
 
@@ -435,7 +643,6 @@ def _analyse_ct_gene_impairments(
         mean_z = sum(z for _, z in tested) / len(tested)
         top_suppressed = [g for g, _ in sorted(suppressed, key=lambda x: x[1])[:10]]
 
-        comp = model.composition.get(ct_name, {})
         impairments.append(CellTypeImpairment(
             cell_type          = ct_name,
             compartment        = comp.get("compartment", "unknown"),
@@ -453,6 +660,125 @@ def _analyse_ct_gene_impairments(
 
     impairments.sort(key=lambda d: d.mean_z_score)
     return impairments
+
+
+# ── Dimension 6: Spatial tissue-location context ──────────────────────────────
+
+def _analyse_spatial_context(
+    gene_devs: list[GeneDeviation],
+    spatial: dict,
+) -> SpatialContext | None:
+    """
+    Annotate deviated genes with their spatial tissue location.
+
+    Uses the tissue_contrasts list (pre-ranked bronchus vs. parenchyma contrast)
+    and falls back to direct lookup in bronchus/parenchyma overall baselines.
+
+    Returns None if no deviated genes have spatial data.
+    """
+    bronchus_overall   = spatial.get("bronchus", {}).get("overall", {})
+    parenchyma_overall = spatial.get("parenchyma", {}).get("overall", {})
+    landmark_map       = spatial.get("landmark_spatial", {})
+
+    # Build a fast gene → contrast lookup from the pre-computed contrast list
+    contrast_map: dict[str, dict] = {}
+    for entry in spatial.get("tissue_contrasts", []):
+        contrast_map[entry["gene"]] = entry
+
+    airway_genes:   list[str] = []
+    alveolar_genes: list[str] = []
+    contexts:       list[SpatialGeneContext] = []
+
+    for dev in gene_devs[:60]:  # annotate top 60 deviated genes
+        gene = dev.gene
+
+        # Try contrast map first (pre-computed, faster)
+        if gene in contrast_map:
+            ct = contrast_map[gene]
+            b_mean = ct["bronchus_mean"]
+            p_mean = ct["parenchyma_mean"]
+            log_fc = ct["log_fc"]
+        else:
+            # Direct lookup in overall baselines
+            b_stats = bronchus_overall.get(gene)
+            p_stats = parenchyma_overall.get(gene)
+            if not b_stats or not p_stats:
+                continue  # no spatial data for this gene
+            b_mean = b_stats["mean"]
+            p_mean = p_stats["mean"]
+            log_fc = round(b_mean - p_mean, 4)
+
+        # Classify spatial enrichment (|Δ| < 0.3 log1p = expressed similarly in both)
+        if abs(log_fc) < 0.3:
+            tissue = "both"
+        elif log_fc > 0:
+            tissue = "bronchus"
+            airway_genes.append(gene)
+        else:
+            tissue = "parenchyma"
+            alveolar_genes.append(gene)
+
+        contexts.append(SpatialGeneContext(
+            gene                = gene,
+            sample_value        = dev.sample_value,
+            direction           = dev.direction,
+            z_score             = dev.z_score,
+            bronchus_baseline   = round(b_mean, 4),
+            parenchyma_baseline = round(p_mean, 4),
+            log_fc              = log_fc,
+            tissue_enriched_in  = tissue,
+            clinical_note       = landmark_map.get(gene, {}).get("note", ""),
+        ))
+
+    if not contexts:
+        return None
+
+    n_airway   = len(airway_genes)
+    n_alveolar = len(alveolar_genes)
+
+    if n_airway > n_alveolar * 1.5 and n_airway >= 2:
+        dominant = "airway"
+    elif n_alveolar > n_airway * 1.5 and n_alveolar >= 2:
+        dominant = "alveolar"
+    elif n_airway > 0 and n_alveolar > 0:
+        dominant = "both"
+    else:
+        dominant = "unknown"
+
+    # Build plain-language summary
+    parts = []
+    if airway_genes:
+        parts.append(
+            f"{n_airway} gene(s) normally enriched in bronchial/airway tissue "
+            f"({', '.join(airway_genes[:4])})"
+        )
+    if alveolar_genes:
+        parts.append(
+            f"{n_alveolar} gene(s) normally enriched in parenchymal/alveolar tissue "
+            f"({', '.join(alveolar_genes[:4])})"
+        )
+
+    location_note = {
+        "airway":   "consistent with a bronchial/airway-dominant process (e.g. airway inflammation, mucus hypersecretion, bronchiectasis)",
+        "alveolar": "consistent with an alveolar/parenchymal-dominant process (e.g. fibrosis, diffuse alveolar damage, emphysema)",
+        "both":     "spanning both airway and alveolar compartments — may indicate a systemic or multi-compartment disease process",
+        "unknown":  "spatial distribution could not be determined from available data",
+    }[dominant]
+
+    summary = (
+        f"Deviation signal is {dominant.upper()}-dominant. "
+        + (". ".join(parts) + "." if parts else "")
+        + f" This is {location_note}."
+    )
+
+    return SpatialContext(
+        n_genes_with_spatial_data   = len(contexts),
+        airway_signal_genes         = airway_genes,
+        alveolar_signal_genes       = alveolar_genes,
+        gene_spatial_contexts       = contexts,
+        dominant_tissue_compartment = dominant,
+        tissue_localisation_summary = summary,
+    )
 
 
 # ── Overall deviation score ────────────────────────────────────────────────────
@@ -477,12 +803,13 @@ def _overall_score(
         ]
         if not scoreable:
             return 0.0
-        return min(sum(abs(d.z_score) for d in scoreable) / (len(cell_devs) * 6.0), 1.0)
+        return min(sum(abs(d.z_score) for d in scoreable) / (len(scoreable) * 6.0), 1.0)
 
     def gene_score() -> float:
         if not gene_devs:
             return 0.0
         top = gene_devs[:20]
+        # Normalize by average Z relative to a "severe" anchor of 8σ
         return min(sum(abs(d.z_score) for d in top) / (len(top) * 8.0), 1.0)
 
     def pathway_score() -> float:
@@ -501,9 +828,21 @@ def _overall_score(
         fracs = [d.n_genes_suppressed / max(d.n_genes_tested, 1) for d in ct_impairs]
         return min(max(fracs), 1.0)
 
+    cs = cell_score()
+    gs = gene_score()
+
+    # When cell-type deconvolution cannot contribute (all types scored 0 because
+    # the sample lacks enough cell-type-specific markers), redistribute the cell
+    # weight to gene score so extreme gene deviations are not buried.
+    cell_w = 0.25
+    gene_w = 0.25
+    if cs == 0.0:
+        gene_w += cell_w
+        cell_w  = 0.0
+
     return round(
-        0.25 * cell_score()          +
-        0.25 * gene_score()          +
+        cell_w * cs                  +
+        gene_w * gs                  +
         0.20 * pathway_score()       +
         0.10 * fetal_score()         +
         0.20 * ct_impairment_score(),
@@ -556,8 +895,8 @@ def _build_summary(
         )
 
     prefix = (
-        "Mild deviation" if score < 0.3 else
-        "Moderate deviation" if score < 0.6 else
+        "Mild deviation" if score < 0.2 else
+        "Moderate deviation" if score < 0.4 else
         "Substantial deviation"
     )
     body = ". ".join(p[0].upper() + p[1:] for p in parts) + ("." if parts else "")

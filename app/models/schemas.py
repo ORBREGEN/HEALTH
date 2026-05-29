@@ -180,6 +180,71 @@ class CellTypeImpairment(BaseModel):
     interpretation: str = ""
 
 
+class SpatialGeneContext(BaseModel):
+    """
+    Tissue-location context for one deviated gene — where in healthy lung it is normally active.
+
+    Derived from Visium spatial baselines (adult bronchus + adult parenchyma).
+    A gene elevated globally reads very differently if it is normally an alveolar gene
+    (elevation = disruption of alveolar biology) vs an airway gene (elevation = airway process).
+    """
+    gene: str
+    sample_value: float
+    direction: str = Field(..., description="'elevated' | 'suppressed'")
+    z_score: float
+    bronchus_baseline: float = Field(..., description="Healthy mean expression in bronchus (airway)")
+    parenchyma_baseline: float = Field(..., description="Healthy mean expression in parenchyma (alveolar)")
+    log_fc: float = Field(
+        ...,
+        description="bronchus_mean minus parenchyma_mean — positive = normally airway-dominant",
+    )
+    tissue_enriched_in: str = Field(
+        ..., description="'bronchus' | 'parenchyma' | 'both' — where this gene is normally highest"
+    )
+    clinical_note: str = Field("", description="Clinical relevance note for landmark genes")
+
+
+class SpatialContext(BaseModel):
+    """
+    Sixth analysis dimension: tissue-location context from Visium spatial baselines.
+
+    Answers WHERE in the lung the deviations are concentrated:
+      - Airway / bronchial signal → process concentrated in bronchi, trachea, large airways
+      - Alveolar / parenchymal signal → process concentrated in gas-exchange tissue
+
+    This is the clinically decisive spatial distinction:
+      - TB is bronchocentric (airways, lymph nodes)
+      - IPF is subpleural parenchymal
+      - COVID-19 is diffuse alveolar damage
+      - COPD has both airway (mucus, inflammation) and alveolar (emphysema) components
+
+    Populated only when spatial_baselines.json is available.
+    """
+    n_genes_with_spatial_data: int = Field(
+        ..., description="Number of deviated genes for which spatial data exists"
+    )
+    airway_signal_genes: list[str] = Field(
+        default_factory=list,
+        description="Deviated genes normally enriched in bronchus — airway-localised signal",
+    )
+    alveolar_signal_genes: list[str] = Field(
+        default_factory=list,
+        description="Deviated genes normally enriched in parenchyma — alveolar-localised signal",
+    )
+    gene_spatial_contexts: list[SpatialGeneContext] = Field(
+        default_factory=list,
+        description="Per-gene spatial context for top deviated genes",
+    )
+    dominant_tissue_compartment: str = Field(
+        ...,
+        description="'airway' | 'alveolar' | 'both' | 'unknown' — which compartment the deviation signal favours",
+    )
+    tissue_localisation_summary: str = Field(
+        "",
+        description="Plain-language summary of which tissue compartment is most affected and why it matters",
+    )
+
+
 class DeviationReport(BaseModel):
     """
     The output of the Respiratory Intelligence Engine for one sample.
@@ -213,6 +278,24 @@ class DeviationReport(BaseModel):
             "Populated when gene_stats_by_cell_type artefact is available."
         )
     )
+    spatial_context: SpatialContext | None = Field(
+        None,
+        description=(
+            "Sixth dimension: tissue-location context from Visium spatial baselines. "
+            "Tells WHERE in the lung the deviations are concentrated — airway vs. alveolar. "
+            "Populated when spatial_baselines.json is available."
+        ),
+    )
+
+    # ── Data quality warnings ──────────────────────────────────────────────────
+    data_quality_warnings: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Warnings raised during input validation — e.g. likely raw counts, "
+            "wrong tissue, Ensembl IDs, non-lung markers detected. "
+            "Empty list means input passed all sanity checks."
+        ),
+    )
 
     # ── Reference information ──────────────────────────────────────────────────
     healthy_reference_cells:  int
@@ -226,6 +309,13 @@ class DeviationReport(BaseModel):
             "it does not constitute a clinical diagnosis. All findings require validation "
             "by certified medical personnel using approved diagnostic procedures."
         )
+    )
+    disclaimer: str = Field(
+        default=(
+            "For research use only. This output does not constitute a medical diagnosis. "
+            "Results must be interpreted by a qualified clinician."
+        ),
+        description="Regulatory disclaimer — present on every analysis response."
     )
 
 
@@ -275,6 +365,13 @@ class SpecialistMatch(BaseModel):
     biological_context: str = Field(
         "",
         description="What the model knows about this symptom pattern at the cellular level (when model is available)"
+    )
+    disclaimer: str = Field(
+        default=(
+            "For research use only. This output does not constitute a medical diagnosis. "
+            "Results must be interpreted by a qualified clinician."
+        ),
+        description="Regulatory disclaimer — present on every analysis response."
     )
 
 
@@ -339,4 +436,11 @@ class BiologicalInterpretation(BaseModel):
             "has not been reviewed by a qualified clinician. All findings require validation "
             "by certified medical personnel using approved diagnostic procedures."
         )
+    )
+    disclaimer: str = Field(
+        default=(
+            "For research use only. This output does not constitute a medical diagnosis. "
+            "Results must be interpreted by a qualified clinician."
+        ),
+        description="Regulatory disclaimer — present on every analysis response."
     )
