@@ -35,6 +35,14 @@ class Settings(BaseSettings):
     SUPABASE_URL: str | None = None
     SUPABASE_SERVICE_KEY: str | None = None
 
+    # Email — Resend (https://resend.com)
+    RESEND_API_KEY: str | None = None
+    FROM_EMAIL: str = "Senebiclabs <noreply@senebiclabs.com>"
+    ADMIN_EMAIL: str = "godwinyampoi449@gmail.com"
+
+    # Admin API key — required for approve/reject endpoints
+    ADMIN_API_KEY: str | None = None
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 
