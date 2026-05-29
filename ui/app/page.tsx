@@ -34,7 +34,7 @@ function ContributeSection() {
           marginBottom: 28,
           maxWidth: 700,
         }}>
-          Get paid for your medical expertise.
+          Contribute your clinical knowledge. Get paid for it.
         </h2>
 
         <p style={{
@@ -46,10 +46,9 @@ function ContributeSection() {
           marginBottom: 28,
           opacity: 0.85,
         }}>
-          We are building a platform where medical professionals complete paid tasks using their clinical knowledge.
-          Any medical discipline. Any task that requires a trained eye — reading a scan, reviewing a case,
-          labelling a pathology image, answering a clinical question, validating a diagnosis, annotating
-          a dataset. If it requires medical training, we have a task for it.
+          The Senebiclabs model improves with every expert annotation. Clinicians and researchers
+          review model outputs, confirm or correct deviation findings, and annotate cases.
+          Each contribution sharpens the detection engine and expands the clinical knowledge base.
         </p>
 
         <p style={{
@@ -61,8 +60,7 @@ function ContributeSection() {
           marginBottom: 52,
           opacity: 0.65,
         }}>
-          Remote. Async. Paid per task. No employer, no shifts, no minimum hours.
-          Work as much or as little as you want, around your existing schedule.
+          Remote. Async. Paid per task. No minimum commitment.
         </p>
 
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>

@@ -138,25 +138,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* QUOTE */}
-      <section style={{ padding: '100px 0', borderTop: '1px solid var(--hairline)', textAlign: 'center' }}>
-        <div style={W}>
-          <p style={{
-            fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-            fontWeight: 100,
-            fontStyle: 'italic',
-            fontSize: 'clamp(26px, 3.5vw, 50px)',
-            lineHeight: 1.25,
-            letterSpacing: '0.02em',
-            color: 'var(--ink)',
-            maxWidth: 800,
-            margin: '0 auto',
-          }}>
-            &ldquo;Most clinical software learns from disease.<br />
-            We learned from health.&rdquo;
-          </p>
-        </div>
-      </section>
 
       {/* HOW WE WORK */}
       <section style={{ padding: '100px 0', borderTop: '1px solid var(--hairline)' }}>

@@ -101,10 +101,9 @@ export const FOOTER = {
   legal2:  'Starting with the lung. Building toward the whole body.',
   nav: {
     platform: [
-      { label: 'For patients',   href: '/patients' },
+      { label: 'For patients',       href: '/patients' },
       { label: 'Specialist network', href: '/experts' },
       { label: 'Contribute data',    href: '/contribute' },
-      { label: 'Research tool',      href: '/analyse' },
     ] satisfies NavItem[],
     company: [
       { label: 'About',   href: '/about' },
