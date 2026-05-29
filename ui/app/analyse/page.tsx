@@ -51,6 +51,7 @@ interface BiologicalInterpretation {
 interface GeneRow { gene: string; value: string }
 interface ColumnOption { name: string; rows: GeneRow[] }
 type NormMode = 'log1p_cp10k' | 'raw_counts' | 'cp10k'
+type UploadMode = 'idle' | 'uploading_h5ad' | 'analysing' | 'interpreting'
 
 // ─── Parsing utilities ────────────────────────────────────────────────────────
 
@@ -233,7 +234,7 @@ export default function AnalysePage() {
 
   // ── Run ──
   const [loading, setLoading]       = useState(false)
-  const [step, setStep]             = useState<'idle' | 'analysing' | 'interpreting'>('idle')
+  const [step, setStep]             = useState<UploadMode>('idle')
   const [report, setReport]         = useState<DeviationReport | null>(null)
   const [interp, setInterp]         = useState<BiologicalInterpretation | null>(null)
   const [interpUnavailable, setInterpUnavailable] = useState(false)
@@ -261,8 +262,46 @@ export default function AnalysePage() {
     }
   }, [])
 
+  // ── h5ad / zip: upload directly to backend, skip browser-parse step ────
+
+  const uploadH5ad = useCallback(async (file: File) => {
+    setLoading(true); setReport(null); setInterp(null)
+    setInterpUnavailable(false); setError(null); setShowReasoning(false)
+    setStep('uploading_h5ad')
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('sample_id', sampleId.trim() || file.name.replace(/\.(h5ad|zip)$/i, '') || `sample_${Date.now()}`)
+
+      const aRes = await fetch('/api/analyse-upload', { method: 'POST', body: fd })
+      if (!aRes.ok) {
+        const err = await aRes.json().catch(() => ({}))
+        throw new Error(err.detail ?? `Analysis failed (${aRes.status})`)
+      }
+      const r: DeviationReport = await aRes.json()
+      setReport(r)
+      setStep('interpreting')
+      const iRes = await fetch('/api/interpret', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(r),
+      })
+      if (iRes.ok) setInterp(await iRes.json())
+      else setInterpUnavailable(true)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Upload failed')
+    } finally {
+      setLoading(false); setStep('idle')
+    }
+  }, [sampleId])
+
   const handleFile = useCallback(async (file: File) => {
     const ext = file.name.split('.').pop()?.toLowerCase()
+    if (ext === 'h5ad' || ext === 'zip') {
+      // h5ad and CellRanger MEX zips cannot be parsed in the browser — send to backend
+      await uploadH5ad(file)
+      return
+    }
     if (ext === 'xlsx' || ext === 'xls' || ext === 'xlsm') {
       try {
         const XLSX = await import('xlsx')
@@ -278,7 +317,7 @@ export default function AnalysePage() {
       const text = await file.text()
       processText(text)
     }
-  }, [processText])
+  }, [processText, uploadH5ad])
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault(); setDragOver(false)
@@ -486,12 +525,36 @@ export default function AnalysePage() {
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
+
+        .analyse-layout {
+          display: grid;
+          grid-template-columns: 420px 1fr;
+          gap: 36px;
+          align-items: start;
+        }
+        .analyse-wrap {
+          max-width: 1400px;
+          margin: 0 auto;
+          padding: 0 56px;
+        }
+        @media (max-width: 1100px) {
+          .analyse-layout { grid-template-columns: 340px 1fr; gap: 24px; }
+          .analyse-wrap { padding: 0 32px; }
+        }
+        @media (max-width: 860px) {
+          .analyse-layout { grid-template-columns: 1fr; }
+          .sidebar { position: static !important; }
+          .analyse-wrap { padding: 0 20px; }
+        }
+        @media (max-width: 640px) {
+          .analyse-wrap { padding: 0 16px; }
+        }
       `}</style>
 
       <NavBar active="analyse" />
 
       <main className="analyse-bg" style={{ paddingTop: 100, paddingBottom: 160 }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 56px' }}>
+        <div className="analyse-wrap">
 
           {/* ── Header ── */}
           <div style={{ marginBottom: 52, paddingBottom: 44, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
@@ -549,7 +612,7 @@ export default function AnalysePage() {
           </div>
 
           {/* ── Layout ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: 36, alignItems: 'start' }}>
+          <div className="analyse-layout">
 
             {/* ════════════════════ LEFT — Input ════════════════════ */}
             <div className="sidebar">
@@ -598,12 +661,12 @@ export default function AnalysePage() {
                         Drop file or click to browse
                       </p>
                       <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.93)', fontFamily: 'Geist Mono, monospace', margin: 0 }}>
-                        .csv · .tsv · .txt · .xlsx · .xls
+                        .h5ad · .zip · .csv · .tsv · .txt · .xlsx
                       </p>
                       <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.62)', fontFamily: 'monospace', marginTop: 6, margin: '6px 0 0' }}>
                         or paste two columns from a spreadsheet
                       </p>
-                      <input ref={fileRef} type="file" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm" style={{ display: 'none' }} onChange={handleFileInput} />
+                      <input ref={fileRef} type="file" accept=".h5ad,.zip,.csv,.tsv,.txt,.xlsx,.xls,.xlsm" style={{ display: 'none' }} onChange={handleFileInput} />
                     </div>
 
                     {inputError && (
@@ -623,7 +686,7 @@ FN1       3.84`}</pre>
                         log1p CP10K · gene symbols (COL1A1, not Ensembl IDs) · min 10 genes
                       </p>
                       <p style={{ marginTop: 4, fontSize: 11, color: 'rgba(255,255,255,0.62)', fontFamily: 'monospace' }}>
-                        Multi-sample files supported — column picker shown automatically
+                        .h5ad and .zip (CellRanger output) are uploaded to the server — analysis starts automatically
                       </p>
                     </div>
 
@@ -811,10 +874,14 @@ FN1       3.84`}</pre>
                   <Spinner size={40} />
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 22, color: '#fff', marginBottom: 10, fontWeight: 300 }}>
-                      {step === 'analysing' ? 'Comparing against healthy reference' : 'Interpreting biology'}
+                      {step === 'uploading_h5ad' ? 'Uploading and parsing file'
+                        : step === 'analysing' ? 'Comparing against healthy reference'
+                        : 'Interpreting biology'}
                     </div>
                     <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.93)', fontFamily: 'monospace', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
-                      {step === 'analysing' ? `Computing Z-scores · ${rows.length} genes submitted` : 'Running pattern analysis'}
+                      {step === 'uploading_h5ad' ? 'Normalising · pseudo-bulk · running analysis'
+                        : step === 'analysing' ? `Computing Z-scores · ${rows.length} genes submitted`
+                        : 'Running pattern analysis'}
                     </div>
                   </div>
                 </div>
