@@ -78,8 +78,8 @@ export default function FaqsPage() {
                   <details className="faq-item">
                     <summary className="faq-q">What data was the model trained on?</summary>
                     <div className="faq-a">
-                      <p>The reference model is built exclusively from the Human Lung Cell Atlas, 2.28 million human lung cells across donors, tissues, and conditions. The model learns only from cells labelled <em>normal</em>. Disease cells are reserved for validation and expert training data, never for building the reference.</p>
-                      <p>The atlas covers 16 disease states and profiles 55,329 genes per cell across five levels of cell-type granularity. Every reference statistic is computed from this data, nothing is manually curated or hardcoded.</p>
+                      <p>The reference model is built exclusively from the Human Lung Cell Atlas — a large-scale collection of real human lung cells across donors, tissues, and conditions. The model learns only from cells labelled <em>normal</em>. Disease cells are reserved for validation and expert training data, never for building the reference.</p>
+                      <p>The atlas spans multiple disease states and profiles gene expression per cell across five levels of cell-type granularity. Every reference statistic is computed from this data, nothing is manually curated or hardcoded.</p>
                     </div>
                   </details>
                   <details className="faq-item">

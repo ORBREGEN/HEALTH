@@ -85,7 +85,7 @@ export default function PatientsPage() {
     <>
       <NavBar active="patients" />
 
-      <section className="hero noise" style={{ padding: '180px 0 160px', textAlign: 'center' }}>
+      <section className="hero noise" style={{ padding: 'clamp(120px, 16vw, 180px) 0 clamp(80px, 12vw, 160px)', textAlign: 'center' }}>
         <div className="wrap">
           <span className="micro" style={{ marginBottom: 32, display: 'block' }}>For patients</span>
           <h1 style={{

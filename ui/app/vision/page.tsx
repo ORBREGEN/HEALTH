@@ -123,9 +123,8 @@ export default function VisionPage() {
               <div className="vm-mission-card-n">01, Reference</div>
               <h3>Build the world&apos;s most detailed model of healthy human biology</h3>
               <p>
-                Starting with the lung, 2.28 million cells, 55,329 genes, 16 disease states
-                present for validation. Every reference statistic computed from the data.
-                Nothing hardcoded. The model learns what healthy looks like at every level of
+                Starting with the lung. Every reference statistic computed from real human cells —
+                nothing hardcoded. The model learns what healthy looks like at every level of
                 resolution: gene, cell type, tissue region, donor variation.
               </p>
               <span className="vm-mission-current">Active, respiratory</span>
@@ -198,8 +197,8 @@ export default function VisionPage() {
               </div>
               <div className="vm-layer-body">
                 <p>
-                  The core of the platform. A biological model built from 2.28 million human lung
-                  cells across the Human Lung Cell Atlas, profiling what healthy human biology
+                  The core of the platform. A biological model built from real human lung cells
+                  across the Human Lung Cell Atlas, profiling what healthy human biology
                   looks like at the level of individual cells, gene by gene, tissue region by
                   tissue region. The lung is where we start. The method applies to every organ.
                 </p>
@@ -284,7 +283,7 @@ export default function VisionPage() {
               <div className="vm-phase-n">Phase 1</div>
               <h3>Respiratory Intelligence Engine</h3>
               <p>
-                Build the healthy reference model from 2.28 million HLCA cells. Validate anomaly
+                Build the healthy reference model from real HLCA cells. Validate anomaly
                 detection. Expose via research API for lab partners. Build the evidence base before
                 the interface.
               </p>

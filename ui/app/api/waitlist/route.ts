@@ -10,10 +10,10 @@ export async function POST(req: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-    if (res.ok) return NextResponse.json({ ok: true })
-    throw new Error()
+    const data = await res.json()
+    return NextResponse.json({ ok: true, message: data.message ?? 'You are on the list.' })
   } catch {
-    // Accept and queue locally if backend is down — never show an error to users joining a waitlist
-    return NextResponse.json({ ok: true })
+    // Accept locally if the backend is unreachable — never block a waitlist sign-up
+    return NextResponse.json({ ok: true, message: 'You are on the list.' })
   }
 }
