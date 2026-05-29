@@ -7,12 +7,15 @@ POST /api/v1/analyse         — analyse a gene expression sample
 """
 
 import logging
+import os
+import tempfile
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile, status
 
 from app.core.exceptions import ModelNotBuiltError, DataNotAvailableError, InsufficientGenesError
 from app.models.schemas import DeviationReport, GeneExpressionSample, ModelStatus
 from app.services import anomaly_detector
+from app.services.file_parser import parse_file_from_path
 from app.services.respiratory_model import (
     build_respiratory_model,
     load_model,
@@ -123,3 +126,98 @@ def analyse_sample(sample: GeneExpressionSample) -> DeviationReport:
     except Exception as e:
         logger.exception("Analysis failed for sample %s", sample.sample_id)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+_MAX_UPLOAD_BYTES = 100 * 1024 * 1024 * 1024  # 100 GB
+_STREAM_CHUNK = 8 * 1024 * 1024  # 8 MB read chunks during upload
+
+
+@router.post(
+    "/analyse/upload",
+    response_model=DeviationReport,
+    summary="Analyse a gene expression file (.h5ad, .csv, .tsv)",
+    description="""
+Upload a gene expression file for analysis against the Healthy Respiratory Model.
+
+**Accepted formats:**
+- `.h5ad` — AnnData (Scanpy / Seurat). Multi-cell files are pseudo-bulk averaged.
+  Parsed with memory-mapped access and chunked cell processing — RAM usage is
+  bounded regardless of cell count.
+- `.zip` — CellRanger MEX output folder (matrix.mtx.gz + barcodes.tsv.gz +
+  features.tsv.gz). Zip the `filtered_feature_bc_matrix/` folder and upload.
+- `.csv` / `.tsv` / `.txt` — two columns: gene symbol, expression value.
+
+**Normalisation:**
+Values should be log1p CP10K (Scanpy: `sc.pp.normalize_total` + `sc.pp.log1p`).
+Raw counts and plain CP10K are auto-detected and normalised with a warning in the report.
+
+**File size limit:** 100 GB.
+""",
+)
+async def analyse_upload(
+    file: UploadFile = File(..., description="Gene expression file (.h5ad, .csv, .tsv)"),
+    sample_id: str = Form(default="", description="Optional sample identifier"),
+) -> DeviationReport:
+    if not anomaly_detector.model_ready():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Healthy Respiratory Model not ready. Call POST /api/v1/model/build first.",
+        )
+
+    filename = file.filename or "upload"
+    ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+
+    # ── Stream upload to temp file (bounded RAM regardless of file size) ────
+    suffix = f'.{ext}' if ext else ''
+    tmp_path: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp_path = tmp.name
+            total = 0
+            while True:
+                chunk = await file.read(_STREAM_CHUNK)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > _MAX_UPLOAD_BYTES:
+                    raise HTTPException(
+                        status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                        detail="File exceeds the 100 GB limit.",
+                    )
+                tmp.write(chunk)
+
+        logger.info("Upload streamed to disk: %s (%.1f MB)", filename, total / 1e6)
+
+        # ── Parse ───────────────────────────────────────────────────────────
+        try:
+            gene_expression, parse_notes = parse_file_from_path(tmp_path, filename)
+        except (ValueError, RuntimeError) as e:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+        except Exception as e:
+            logger.exception("File parsing failed for %s", filename)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Could not parse file: {e}",
+            )
+
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+    # ── Analyse ─────────────────────────────────────────────────────────────
+    sid = sample_id.strip() or filename.rsplit('.', 1)[0] or "uploaded_sample"
+    try:
+        report = anomaly_detector.analyse(sid, gene_expression)
+    except InsufficientGenesError as e:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+    except ModelNotBuiltError as e:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
+    except Exception as e:
+        logger.exception("Analysis failed for uploaded file %s", filename)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+    if parse_notes:
+        report.data_quality_warnings = parse_notes + report.data_quality_warnings
+
+    logger.info("Upload analysis complete: %s (%d genes)", sid, len(gene_expression))
+    return report
