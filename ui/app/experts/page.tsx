@@ -3,42 +3,22 @@ import { useState, useEffect } from 'react'
 import NavBar from '../components/NavBar'
 import FooterSection from '../components/sections/FooterSection'
 
-const SPECIALTIES = [
-  'Pulmonology',
-  'Respiratory medicine',
-  'Allergy & immunology',
-  'Critical care / intensive care',
-  'Sleep medicine',
-  'Thoracic surgery',
-  'Paediatric pulmonology',
-  'General practice (respiratory focus)',
-  'Other',
-]
-
-const EXPERIENCE = [
-  'Less than 2 years',
-  '2–5 years',
-  '5–10 years',
-  '10–20 years',
-  'More than 20 years',
-]
-
 const BENEFITS = [
   {
-    heading: 'Only cases that fit you',
-    body: 'Every patient referred to you has been matched based on their symptoms and your specialty. No random referrals. No wasted consultations.',
+    heading: 'Cases matched to your expertise',
+    body: 'Every patient the platform sends you has been selected because their presentation fits your specific specialty. No random referrals. No consultations that go nowhere.',
   },
   {
-    heading: 'Full context before you start',
-    body: 'Each case arrives with a structured summary already prepared, symptom history, key flags, relevant background. You start further along.',
+    heading: 'Full picture before you start',
+    body: 'Each case arrives with a structured summary — symptom history, duration, key flags, and relevant context. You start from a position of clarity, not catch-up.',
   },
   {
-    heading: 'Reach patients beyond your postcode',
-    body: 'Patients find you through Senebiclabs regardless of where they are. You expand your reach without changing how or where you practice.',
+    heading: 'Patients beyond your geography',
+    body: 'Patients anywhere can be matched to you through Senebiclabs. Your expertise reaches them without changing where or how you practice.',
   },
   {
-    heading: 'You set the terms',
-    body: 'You control your availability. Take on as many or as few cases as you want. Nothing is assigned without your consent.',
+    heading: 'You control your capacity',
+    body: 'Set your availability on your terms. Accept as many or as few cases as you choose. Nothing is assigned to you without your explicit consent.',
   },
 ]
 
@@ -46,17 +26,17 @@ const HOW = [
   {
     n: '01',
     heading: 'Apply and get verified',
-    body: 'Submit your credentials, licence number, specialty, and institution. We verify every doctor personally before they join.',
+    body: 'Submit your credentials, licence number, specialty, and institution. Every application is reviewed personally and credentials are verified before anyone joins.',
   },
   {
     n: '02',
-    heading: 'Your profile goes live',
-    body: 'Once approved, your specialty and location are part of the matching engine. Patients near you whose presentation fits your expertise are routed to you.',
+    heading: 'Your profile enters the network',
+    body: 'Once verified, your specialty and location are factored into the matching engine. Patients whose presentation fits your expertise are routed to you.',
   },
   {
     n: '03',
-    heading: 'See prepared cases',
-    body: 'Every referral arrives with a full case summary. You spend your time on clinical judgment, not catching up on history.',
+    heading: 'Every referral arrives prepared',
+    body: 'Each case comes with a full structured summary. You spend your time on clinical judgment, not piecing together history from scratch.',
   },
 ]
 
@@ -73,23 +53,31 @@ function useLocation() {
   return coords
 }
 
+const STORAGE_KEY = 'senebiclabs_expert_applied'
+
 function ApplicationForm() {
   const location = useLocation()
-  const [form, setForm] = useState({
-    name: '', email: '', specialty: '', institution: '',
-    country: '', license: '', experience: '', note: '',
-  })
+  const [form, setForm] = useState({ name: '', email: '', note: '' })
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [loading, setLoading] = useState(false)
   const [done, setDone]       = useState(false)
   const [error, setError]     = useState('')
 
+  useEffect(() => {
+    if (localStorage.getItem(STORAGE_KEY) === 'true') setDone(true)
+  }, [])
+
   const set = (k: keyof typeof form) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm(f => ({ ...f, [k]: e.target.value }))
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (loading) return
+    if (!agreedToTerms) {
+      setError('Please confirm that you agree to the terms before submitting.')
+      return
+    }
     setLoading(true)
     setError('')
     try {
@@ -98,13 +86,14 @@ function ApplicationForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          type: 'expert',
+          agreed_to_terms: true,
           lat: location?.lat ?? null,
           lng: location?.lng ?? null,
         }),
       })
       const data = await res.json()
       if (!data.ok) throw new Error(data.message ?? '')
+      localStorage.setItem(STORAGE_KEY, 'true')
       setDone(true)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
@@ -119,75 +108,53 @@ function ApplicationForm() {
         <polyline points="20 6 9 17 4 12" />
       </svg>
       <div>
-        <h4>Application received.</h4>
-        <p>We will review your credentials and be in touch within 5 business days.</p>
+        <h4>You are on the list.</h4>
+        <p>We will verify your credentials and reach out when the app is ready to launch.</p>
       </div>
     </div>
   )
 
   return (
-    <form className="mf-form" style={{ maxWidth: 760, margin: '0 auto' }} onSubmit={submit}>
+    <form className="mf-form" style={{ maxWidth: 560, margin: '0 auto' }} onSubmit={submit}>
       <div className="mf-row cols-2">
         <div className="mf-field">
           <label className="mf-label">Full name</label>
           <input className="mf-input" type="text" placeholder="Dr. Your Name" value={form.name} onChange={set('name')} required disabled={loading} />
         </div>
         <div className="mf-field">
-          <label className="mf-label">Professional email</label>
+          <label className="mf-label">Email</label>
           <input className="mf-input" type="email" placeholder="you@hospital.org" value={form.email} onChange={set('email')} required disabled={loading} />
-        </div>
-      </div>
-      <div className="mf-row cols-2">
-        <div className="mf-field">
-          <label className="mf-label">Specialty</label>
-          <select className="mf-select" value={form.specialty} onChange={set('specialty')} required disabled={loading}>
-            <option value="" disabled>Select specialty</option>
-            {SPECIALTIES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <div className="mf-field">
-          <label className="mf-label">Institution / Hospital</label>
-          <input className="mf-input" type="text" placeholder="Where you practice" value={form.institution} onChange={set('institution')} required disabled={loading} />
-        </div>
-      </div>
-      <div className="mf-row cols-2">
-        <div className="mf-field">
-          <label className="mf-label">Country</label>
-          <input className="mf-input" type="text" placeholder="Country" value={form.country} onChange={set('country')} required disabled={loading} />
-        </div>
-        <div className="mf-field">
-          <label className="mf-label">Medical licence number</label>
-          <input className="mf-input" type="text" placeholder="For credential verification" value={form.license} onChange={set('license')} required disabled={loading} />
-        </div>
-      </div>
-      <div className="mf-row cols-1">
-        <div className="mf-field">
-          <label className="mf-label">Years of experience</label>
-          <select className="mf-select" value={form.experience} onChange={set('experience')} required disabled={loading}>
-            <option value="" disabled>Select range</option>
-            {EXPERIENCE.map(ex => <option key={ex} value={ex}>{ex}</option>)}
-          </select>
         </div>
       </div>
       <div className="mf-row cols-1">
         <div className="mf-field">
           <label className="mf-label">
-            Anything else you want us to know
-            <span style={{ color: 'var(--slate-2)', fontWeight: 400 }}>, optional</span>
+            Anything you want us to know
+            <span style={{ color: 'var(--slate-2)', fontWeight: 400 }}> — optional</span>
           </label>
-          <textarea className="mf-textarea" placeholder="Research focus, clinical interests, or why you want to join…" value={form.note} onChange={set('note')} disabled={loading} />
+          <textarea className="mf-textarea" placeholder="Specialty, institution, or anything else…" value={form.note} onChange={set('note')} disabled={loading} />
         </div>
       </div>
-      <div className="mf-footer" style={{ flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-        <button className="mf-submit" type="submit" disabled={loading} style={{ width: '100%' }}>
-          {loading ? 'Submitting…' : 'Submit application'}
+      <div className="mf-footer" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 16 }}>
+        <label className="mf-terms-label">
+          <input
+            type="checkbox"
+            checked={agreedToTerms}
+            onChange={e => setAgreedToTerms(e.target.checked)}
+            disabled={loading}
+            className="mf-terms-check"
+          />
+          <span>
+            I confirm that I am a licensed medical professional and I consent to Senebiclabs
+            contacting me when the mobile app launches.
+          </span>
+        </label>
+        <button className="mf-submit" type="submit" disabled={loading || !agreedToTerms} style={{ width: '100%' }}>
+          {loading ? 'Submitting…' : 'Reserve your place →'}
         </button>
         <span className="mf-note" style={{ textAlign: 'center' }}>
-          Every application is reviewed personally. We will be in touch within 5 business days.
+          Every application is reviewed personally. We verify credentials before the app launches.
         </span>
-        <p style={{ margin: 0, fontFamily: 'var(--font-mono, monospace)', fontSize: 11, color: 'var(--slate)', letterSpacing: '0.08em', textAlign: 'center' }}>
-          Senebiclabs is a research and matching platform. Clinical decisions remain the sole responsibility of the treating physician.
-        </p>
       </div>
       {error && <p className="mf-error" style={{ textAlign: 'center' }}>{error}</p>}
     </form>
@@ -202,21 +169,24 @@ export default function ExpertsPage() {
       {/* Hero */}
       <section className="hero noise" style={{ padding: '180px 0 160px', textAlign: 'center' }}>
         <div className="wrap">
-          <span className="micro" style={{ marginBottom: 32, display: 'block' }}>For respiratory specialists</span>
+          <span className="micro" style={{ marginBottom: 32, display: 'block' }}>Specialist network · Pre-launch</span>
           <h1 style={{
-            fontFamily: 'Geist, sans-serif',
-            fontWeight: 700,
-            fontSize: 'clamp(52px, 8vw, 96px)',
-            lineHeight: 1.0,
-            letterSpacing: '-0.035em',
+            fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+            fontWeight: 100,
+            fontSize: 'clamp(48px, 7vw, 88px)',
+            lineHeight: 1.05,
+            letterSpacing: '0.02em',
             textWrap: 'balance',
             marginBottom: 28,
           }}>
-            The patients who need you<br />most can&apos;t find you.
+            See only the cases<br />that fit your expertise.
           </h1>
-          <p style={{ fontSize: 22, color: 'var(--ink)', lineHeight: 1.7, maxWidth: 600, margin: '0 auto' }}>
-            Senebiclabs matches patients to the nearest suitable specialist based on what they actually have. Join the network, every case that reaches you already fits your expertise.
+          <p style={{ fontSize: 20, color: 'var(--ink)', lineHeight: 1.75, maxWidth: 560, margin: '0 auto 40px' }}>
+            We are building the mobile app. Submit your credentials now and we will verify them before launch. When the app goes live, you will be among the first specialists activated on the network.
           </p>
+          <a href="#apply" className="nav-join-cta" style={{ fontSize: 13, padding: '12px 28px' }}>
+            Reserve your place →
+          </a>
         </div>
       </section>
 
@@ -282,10 +252,10 @@ export default function ExpertsPage() {
             marginBottom: 16,
             textWrap: 'balance',
           }}>
-            Join the specialist network.
+            Reserve your place before we launch.
           </h2>
           <p style={{ fontSize: 17, color: 'var(--slate)', lineHeight: 1.7, maxWidth: 520, margin: '0 auto 56px' }}>
-            We verify every doctor before they join. This is a curated network, not a directory. Every application is reviewed personally.
+            Submit your credentials now. We review every application personally and verify them before the app launches. When it does, your profile goes live immediately.
           </p>
           <ApplicationForm />
         </div>

@@ -7,8 +7,8 @@ import FooterSection from './components/sections/FooterSection'
 
 function ContributeSection() {
   return (
-    <section style={{ padding: '120px 0', borderTop: '1px solid var(--hairline)' }}>
-      <div style={{ maxWidth: 960, margin: '0 auto' }}>
+    <section style={{ padding: 'clamp(64px, 10vw, 120px) 0', borderTop: '1px solid var(--hairline)' }}>
+      <div className="wrap">
 
         <span style={{
           fontFamily: 'Geist Mono, monospace',
@@ -44,7 +44,6 @@ function ContributeSection() {
           lineHeight: 1.8,
           maxWidth: 640,
           marginBottom: 28,
-          opacity: 0.85,
         }}>
           The Senebiclabs model improves with every expert annotation. Clinicians and researchers
           review model outputs, confirm or correct deviation findings, and annotate cases.
@@ -52,13 +51,12 @@ function ContributeSection() {
         </p>
 
         <p style={{
-          fontSize: 17,
+          fontSize: 'clamp(15px, 1.4vw, 17px)',
           fontWeight: 300,
           color: 'var(--ink)',
           lineHeight: 1.8,
           maxWidth: 560,
           marginBottom: 52,
-          opacity: 0.65,
         }}>
           Remote. Async. Paid per task. No minimum commitment.
         </p>
@@ -74,8 +72,8 @@ function ContributeSection() {
 
 function SpecialistSection() {
   return (
-    <section style={{ padding: '120px 0', borderTop: '1px solid var(--hairline)' }}>
-      <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
+    <section style={{ padding: 'clamp(64px, 10vw, 120px) 0', borderTop: '1px solid var(--hairline)' }}>
+      <div className="wrap" style={{ textAlign: 'center' }}>
 
         <span style={{
           fontFamily: 'Geist Mono, monospace',
@@ -114,7 +112,7 @@ function SpecialistSection() {
           Millions of patients never reach the right doctor. They wait, they get mismatched, they get worse. You have the expertise to change that. Join the Senebiclabs network and we will make sure the patients who need you most can actually find you.
         </p>
 
-        <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginBottom: 100 }}>
+        <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginBottom: 'clamp(48px, 8vw, 100px)' }}>
           <a href="/experts" className="nav-join-cta">Apply to join →</a>
         </div>
 
@@ -123,7 +121,7 @@ function SpecialistSection() {
           <p style={{ fontSize: 'clamp(18px, 1.8vw, 22px)', fontWeight: 300, color: 'var(--ink)', lineHeight: 1.75, marginBottom: 20 }}>
             We are rolling out the Senebiclabs app for patients. Describe your symptoms, get matched to the nearest suitable specialist, and book a consultation, all from your phone on iOS and Android.
           </p>
-          <p style={{ fontSize: 17, color: 'var(--ink)', lineHeight: 1.75, opacity: 0.8 }}>
+          <p style={{ fontSize: 'clamp(15px, 1.4vw, 17px)', color: 'var(--ink)', lineHeight: 1.75 }}>
             Join the specialist network now and be discoverable to patients the moment the app launches.
           </p>
         </div>

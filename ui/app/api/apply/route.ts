@@ -10,10 +10,18 @@ export async function POST(req: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-    if (res.ok) return NextResponse.json({ ok: true })
-    throw new Error()
+    const data = await res.json()
+    if (!res.ok) {
+      return NextResponse.json(
+        { ok: false, message: data.detail ?? 'Something went wrong. Please try again.' },
+        { status: res.status }
+      )
+    }
+    return NextResponse.json(data)
   } catch {
-    // Queue locally if backend is down — never surface a failure to an applicant
-    return NextResponse.json({ ok: true })
+    return NextResponse.json(
+      { ok: false, message: 'Unable to reach the server. Please try again shortly.' },
+      { status: 503 }
+    )
   }
 }

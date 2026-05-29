@@ -1,13 +1,19 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import NavBar from '../components/NavBar'
 import FooterSection from '../components/sections/FooterSection'
+
+const STORAGE_KEY = 'senebiclabs_contributor_waitlist'
 
 function WaitlistForm() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone]       = useState(false)
   const [error, setError]     = useState('')
+
+  useEffect(() => {
+    if (localStorage.getItem(STORAGE_KEY) === 'true') setDone(true)
+  }, [])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,6 +28,7 @@ function WaitlistForm() {
       })
       const data = await res.json()
       if (!data.ok) throw new Error(data.message ?? '')
+      localStorage.setItem(STORAGE_KEY, 'true')
       setDone(true)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
@@ -59,7 +66,7 @@ export default function ContributePage() {
     <>
       <NavBar active="contribute" />
 
-      <section className="hero noise" style={{ padding: '180px 0 160px', textAlign: 'center' }}>
+      <section className="hero noise" style={{ padding: 'clamp(120px, 16vw, 180px) 0 clamp(80px, 12vw, 160px)', textAlign: 'center' }}>
         <div className="wrap">
           <span className="micro" style={{ marginBottom: 32, display: 'block' }}>For medical professionals</span>
           <h1 style={{

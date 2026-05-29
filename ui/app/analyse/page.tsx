@@ -505,7 +505,7 @@ export default function AnalysePage() {
                 </h1>
                 <p style={{ fontSize: 19, color: 'rgba(255,255,255,0.88)', lineHeight: 1.75, maxWidth: 500, fontWeight: 300, margin: 0 }}>
                   Submit a patient gene expression profile. Every deviation is scored
-                  against a reference built from 1.3 million healthy lung cells.
+                  against a reference built from real healthy human lung cells.
                 </p>
               </div>
 

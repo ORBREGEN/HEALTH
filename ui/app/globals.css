@@ -19,7 +19,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 em { font-style: italic; }
-p { font-size: 19px; line-height: 1.75; }
+p { font-size: clamp(16px, 1.6vw, 19px); line-height: 1.75; }
 
 html, body {
   background: var(--navy);
@@ -118,6 +118,47 @@ nav.top .row {
 .nav-links { display: flex; gap: 36px; font-size: 15px; color: var(--slate); align-items: center; }
 .nav-links a { transition: color 0.15s ease; }
 .nav-links a:hover { color: var(--ink); }
+
+/* Mobile hamburger */
+.nav-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  color: var(--ink);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.nav-hamburger:hover { background: rgba(255,255,255,0.06); }
+.nav-cta-desktop { display: inline-block; }
+
+/* Mobile dropdown menu */
+.nav-mobile-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 20px 20px;
+  border-top: 1px solid var(--hairline);
+  gap: 0;
+}
+.nav-mobile-menu a {
+  font-size: 17px;
+  font-weight: 300;
+  color: var(--ink);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--hairline);
+  transition: opacity 0.15s;
+  text-decoration: none;
+}
+.nav-mobile-menu a.nav-mobile-active { font-weight: 500; }
+.nav-mobile-menu a:last-of-type:not(.nav-join-cta) { border-bottom: none; }
+.nav-mobile-menu a:hover { opacity: 0.65; }
+.nav-mobile-menu .nav-join-cta { color: var(--navy); padding: 8px 18px; border-bottom: none; margin-top: 16px; align-self: flex-start; }
+.nav-open { border-radius: 14px; }
 
 /* Three-dot button */
 .nav-dots-wrap { position: relative; flex-shrink: 0; }
@@ -702,7 +743,7 @@ footer .legal { display: flex; justify-content: space-between; margin-top: 64px;
 
 /* ── RESPONSIVE ── */
 @media (max-width: 1024px) {
-  .wrap { padding: 0; }
+  .wrap { padding: 0 32px; }
   h1.display { font-size: 64px; }
   h2.title { font-size: 44px; }
   .section-head { gap: 48px; }
@@ -738,7 +779,7 @@ footer .legal { display: flex; justify-content: space-between; margin-top: 64px;
 }
 
 @media (max-width: 768px) {
-  .wrap { padding: 0; }
+  .wrap { padding: 0 20px; }
   /* Paths — single column on mobile */
   .paths-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
   .approach-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
@@ -753,6 +794,8 @@ footer .legal { display: flex; justify-content: space-between; margin-top: 64px;
   nav.top { top: 12px; left: 16px; right: 16px; }
   nav.top .row { height: 58px; padding: 0 16px; }
   .nav-links { display: none; }
+  .nav-cta-desktop { display: none !important; }
+  .nav-hamburger { display: flex; }
   .nd-mobile-links { display: flex; }
   .nd-divider.nd-mobile-divider { display: block; }
   /* Type */
@@ -834,6 +877,7 @@ footer .legal { display: flex; justify-content: space-between; margin-top: 64px;
 }
 
 @media (max-width: 480px) {
+  .wrap { padding: 0 16px; }
   h1.display { font-size: 32px; }
   h2.title { font-size: 26px; }
   .sphere-tagline { font-size: 28px; }
@@ -852,6 +896,45 @@ footer .legal { display: flex; justify-content: space-between; margin-top: 64px;
   .pillar p { grid-column: 1; }
   footer .grid { grid-template-columns: 1fr; }
   .acard h3 { font-size: 22px; }
+}
+
+/* ── RESPONSIVE GRID UTILITIES ── */
+.blocks-3col { display: grid; grid-template-columns: repeat(3, 1fr); }
+.senebic-grid { display: grid; grid-template-columns: 240px 1fr; gap: 0 80px; align-items: start; }
+.about-2col   { display: grid; grid-template-columns: 280px 1fr; gap: 80px; align-items: start; }
+.about-3col   { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; }
+.about-get-in-touch { display: flex; flex-direction: column; gap: 20px; }
+.cards-2col   { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; background: var(--hairline); border: 1px solid var(--hairline); border-radius: 16px; overflow: hidden; }
+
+@media (max-width: 768px) {
+  /* Section vertical padding */
+  section { --section-pad: 72px; }
+
+  /* Grids → single column */
+  .blocks-3col  { grid-template-columns: 1fr !important; }
+  .senebic-grid { grid-template-columns: 1fr !important; gap: 32px 0 !important; }
+  .about-2col   { grid-template-columns: 1fr !important; gap: 40px !important; }
+  .about-3col   { grid-template-columns: 1fr !important; gap: 32px !important; }
+  .cards-2col   { grid-template-columns: 1fr !important; }
+
+  /* Unstick sticky columns */
+  .about-2col > div:first-child { position: static !important; }
+
+  /* Hero */
+  .hero-section { padding-top: 120px !important; padding-bottom: 60px !important; }
+  .hero-section h1 { font-size: clamp(32px, 8vw, 52px) !important; }
+
+  /* Homepage section padding */
+  .home-section { padding-top: 72px !important; padding-bottom: 72px !important; }
+
+  /* Blocks: remove negative margin trick on mobile */
+  .blocks-3col > div { margin-left: 0 !important; border-top: 1px solid var(--hairline); border-left: 1px solid var(--hairline); border-right: 1px solid var(--hairline); border-bottom: none; }
+  .blocks-3col > div:last-child { border-bottom: 1px solid var(--hairline); }
+}
+
+@media (max-width: 480px) {
+  .about-3col { gap: 24px !important; }
+  .senebic-grid { gap: 24px 0 !important; }
 }
 
 /* ── FAQ PAGE ───────────────────────────────────────────────── */
@@ -1533,6 +1616,9 @@ details[open] > .faq-q {
 .mf-success h4 { font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
 .mf-success p { font-size: 14px; color: var(--slate); line-height: 1.6; }
 .mf-error { font-size: 13px; color: #f87171; padding: 10px 18px; }
+.mf-terms-label { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; padding: 4px 0; }
+.mf-terms-check { flex-shrink: 0; margin-top: 2px; width: 16px; height: 16px; accent-color: var(--teal); cursor: pointer; }
+.mf-terms-label span { font-size: 13px; color: var(--slate); line-height: 1.65; }
 @media (max-width: 640px) {
   .mf-row.cols-2 { grid-template-columns: 1fr; }
   .mf-field { border-right: none; border-bottom: 1px solid var(--hairline); }
