@@ -8,28 +8,10 @@ export default function AnalyseRequestPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  async function submit(e: React.FormEvent) {
+  function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!code.trim()) { setError('Enter your access code.'); return }
-    setError('')
-    setLoading(true)
-    try {
-      const res = await fetch('/api/analyse-access', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code.trim() }),
-      })
-      if (res.ok) {
-        window.location.href = '/analyse'
-      } else {
-        const data = await res.json()
-        setError(data.error ?? 'Invalid access code.')
-      }
-    } catch {
-      setError('Something went wrong. Try again.')
-    } finally {
-      setLoading(false)
-    }
+    window.location.href = '/analyse'
   }
 
   return (
