@@ -1,0 +1,21 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Senebiclabs — profile photo, dark. 400x400 square.
+    All social platforms will circle-crop this correctly.
+  -->
+  <rect width="400" height="400" fill="#0A0A0F"/>
+
+  <line   x1="200" y1="350" x2="200" y2="62"  stroke="white" stroke-width="30" stroke-linecap="round"/>
+  <path d="M 200 350 C 158 274 125 170 125 100" stroke="white" stroke-width="30" stroke-linecap="round"/>
+  <path d="M 200 350 C 242 274 275 170 275 100" stroke="white" stroke-width="30" stroke-linecap="round"/>
+  <path d="M 200 350 C 170 332  85 272  85 188" stroke="white" stroke-width="30" stroke-linecap="round"/>
+  <path d="M 200 350 C 230 332 315 272 315 188" stroke="white" stroke-width="30" stroke-linecap="round"/>
+
+  <circle cx="200" cy="350" r="18" fill="white"/>
+  <circle cx="200" cy="62"  r="14" fill="white"/>
+  <circle cx="125" cy="100" r="14" fill="white"/>
+  <circle cx="275" cy="100" r="14" fill="white"/>
+  <circle cx="85"  cy="188" r="14" fill="white"/>
+  <circle cx="315" cy="188" r="14" fill="white"/>
+
+</svg>

@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     # Admin API key — required for approve/reject endpoints
     ADMIN_API_KEY: str | None = None
 
+    # Analyse access token — gates the /analyse research interface
+    ANALYSE_ACCESS_TOKEN: str | None = None
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

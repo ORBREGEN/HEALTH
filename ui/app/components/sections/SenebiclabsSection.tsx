@@ -21,9 +21,6 @@ export default function SenebiclabsSection() {
               </p>
             ))}
           </div>
-          <div style={{ marginTop: 48 }}>
-            <a href="/vision" className="iso-cta">Explore the science →</a>
-          </div>
         </div>
       </div>
     </section>

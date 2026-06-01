@@ -106,16 +106,8 @@ export const FOOTER = {
       { label: 'Contribute data',    href: '/contribute' },
     ] satisfies NavItem[],
     company: [
-      { label: 'About',   href: '/about' },
-      { label: 'Vision',  href: '/vision' },
-      { label: 'Careers', href: '#' },
-      { label: 'Press',   href: '#' },
+      { label: 'About', href: '/about' },
     ] satisfies NavItem[],
-    trust: [
-      { label: 'Privacy',     href: '#' },
-      { label: 'Data ethics', href: '#' },
-      { label: 'Security',    href: '#' },
-      { label: 'Regulatory',  href: '#' },
-    ] satisfies NavItem[],
+    trust: [] satisfies NavItem[],
   },
 }

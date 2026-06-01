@@ -1,95 +1,104 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import NavBar from '../components/NavBar'
-import FooterSection from '../components/sections/FooterSection'
+import Toast from '../components/ui/Toast'
 
-const BENEFITS = [
+const HOW_IT_WORKS = [
   {
-    heading: 'Cases matched to your expertise',
-    body: 'Every patient the platform sends you has been selected because their presentation fits your specific specialty. No random referrals. No consultations that go nowhere.',
+    heading: 'Patient opens the app',
+    body: 'They describe their symptoms, how long they have had them, and any history. No referral needed. No GP bottleneck.',
   },
   {
-    heading: 'Full picture before you start',
-    body: 'Each case arrives with a structured summary — symptom history, duration, key flags, and relevant context. You start from a position of clarity, not catch-up.',
+    heading: 'The app finds the right specialist',
+    body: 'Senebic analyses the presentation and matches the patient to the specialist whose expertise fits best — not just the nearest available doctor.',
   },
   {
-    heading: 'Patients beyond your geography',
-    body: 'Patients anywhere can be matched to you through Senebiclabs. Your expertise reaches them without changing where or how you practice.',
+    heading: 'You receive the case',
+    body: 'You get a structured summary: symptoms, duration, flags, and context. You decide whether to accept. Nothing is pushed to you without your consent.',
   },
   {
-    heading: 'You control your capacity',
-    body: 'Set your availability on your terms. Accept as many or as few cases as you choose. Nothing is assigned to you without your explicit consent.',
+    heading: 'You consult, remotely or in person',
+    body: 'The consultation happens on your terms — video, in clinic, or async. You get paid per case. No minimum commitment required.',
   },
 ]
 
-const HOW = [
+const STEPS = [
   {
     n: '01',
-    heading: 'Apply and get verified',
-    body: 'Submit your credentials, licence number, specialty, and institution. Every application is reviewed personally and credentials are verified before anyone joins.',
+    heading: 'Apply',
+    body: 'Submit your name, email, and specialty. Every application is reviewed personally — not by an automated system.',
   },
   {
     n: '02',
-    heading: 'Your profile enters the network',
-    body: 'Once verified, your specialty and location are factored into the matching engine. Patients whose presentation fits your expertise are routed to you.',
+    heading: 'Get verified',
+    body: 'We verify your credentials before you go live. You will hear from us directly. This takes a few days, not weeks.',
   },
   {
     n: '03',
-    heading: 'Every referral arrives prepared',
-    body: 'Each case comes with a full structured summary. You spend your time on clinical judgment, not piecing together history from scratch.',
+    heading: 'Go live when the app launches',
+    body: 'Your profile enters the matching engine. The moment a patient\'s presentation fits your specialty, they can reach you.',
   },
 ]
 
-function useLocation() {
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
-  useEffect(() => {
-    if (!navigator.geolocation) return
-    navigator.geolocation.getCurrentPosition(
-      pos => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {},
-      { timeout: 8000 }
-    )
-  }, [])
-  return coords
-}
+// ── STEP FORM ────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY = 'senebiclabs_expert_applied'
 
-function ApplicationForm() {
-  const location = useLocation()
-  const [form, setForm] = useState({ name: '', email: '', note: '' })
-  const [agreedToTerms, setAgreedToTerms] = useState(false)
+const FIELDS = [
+  { key: 'name',  label: 'Full name',  placeholder: 'Dr. Your Name',      type: 'text',  required: true  },
+  { key: 'email', label: 'Email',      placeholder: 'you@hospital.org',    type: 'email', required: true  },
+  { key: 'note',  label: 'Specialty',  placeholder: 'e.g. Pulmonology',    type: 'text',  required: false },
+] as const
+
+type FieldKey = typeof FIELDS[number]['key']
+type FormValues = Record<FieldKey, string>
+
+function StepForm() {
+  const [step, setStep]       = useState(0)
+  const [form, setForm]       = useState<FormValues>({ name: '', email: '', note: '' })
+  const [agreed, setAgreed]   = useState(false)
   const [loading, setLoading] = useState(false)
   const [done, setDone]       = useState(false)
   const [error, setError]     = useState('')
+  const [coords, setCoords]   = useState<{ lat: number; lng: number } | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
     if (localStorage.getItem(STORAGE_KEY) === 'true') setDone(true)
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        p => setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }),
+        () => {},
+        { timeout: 8000 },
+      )
+    }
   }, [])
 
-  const set = (k: keyof typeof form) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      setForm(f => ({ ...f, [k]: e.target.value }))
+  useEffect(() => {
+    if (step < FIELDS.length) inputRef.current?.focus()
+  }, [step])
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (loading) return
-    if (!agreedToTerms) {
-      setError('Please confirm that you agree to the terms before submitting.')
-      return
-    }
-    setLoading(true)
-    setError('')
+  const current = FIELDS[step]
+
+  const advance = () => {
+    const val = form[current.key].trim()
+    if (current.required && !val) { inputRef.current?.focus(); return }
+    setStep(s => s + 1)
+  }
+
+  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') { e.preventDefault(); advance() }
+  }
+
+  const submit = async () => {
+    if (!agreed || loading) return
+    setLoading(true); setError('')
     try {
       const res = await fetch('/api/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          agreed_to_terms: true,
-          lat: location?.lat ?? null,
-          lng: location?.lng ?? null,
-        }),
+        body: JSON.stringify({ ...form, agreed_to_terms: true, lat: coords?.lat ?? null, lng: coords?.lng ?? null }),
       })
       const data = await res.json()
       if (!data.ok) throw new Error(data.message ?? '')
@@ -103,63 +112,173 @@ function ApplicationForm() {
   }
 
   if (done) return (
-    <div className="mf-success" style={{ maxWidth: 640, margin: '0 auto' }}>
-      <svg className="mf-success-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <polyline points="20 6 9 17 4 12" />
-      </svg>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, paddingTop: 8 }}>
+      <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--ink)', flexShrink: 0, marginTop: 6, display: 'block' }} />
       <div>
-        <h4>You are on the list.</h4>
-        <p>We will verify your credentials and reach out when the app is ready to launch.</p>
+        <p style={{ fontFamily: 'Geist Mono, monospace', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>
+          You're on the list
+        </p>
+        <p style={{ fontSize: 16, lineHeight: 1.65 }}>
+          We will verify your credentials and reach out before the app launches.
+        </p>
       </div>
     </div>
   )
 
   return (
-    <form className="mf-form" style={{ maxWidth: 560, margin: '0 auto' }} onSubmit={submit}>
-      <div className="mf-row cols-2">
-        <div className="mf-field">
-          <label className="mf-label">Full name</label>
-          <input className="mf-input" type="text" placeholder="Dr. Your Name" value={form.name} onChange={set('name')} required disabled={loading} />
-        </div>
-        <div className="mf-field">
-          <label className="mf-label">Email</label>
-          <input className="mf-input" type="email" placeholder="you@hospital.org" value={form.email} onChange={set('email')} required disabled={loading} />
-        </div>
-      </div>
-      <div className="mf-row cols-1">
-        <div className="mf-field">
-          <label className="mf-label">
-            Anything you want us to know
-            <span style={{ color: 'var(--slate-2)', fontWeight: 400 }}> — optional</span>
-          </label>
-          <textarea className="mf-textarea" placeholder="Specialty, institution, or anything else…" value={form.note} onChange={set('note')} disabled={loading} />
-        </div>
-      </div>
-      <div className="mf-footer" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 16 }}>
-        <label className="mf-terms-label">
-          <input
-            type="checkbox"
-            checked={agreedToTerms}
-            onChange={e => setAgreedToTerms(e.target.checked)}
-            disabled={loading}
-            className="mf-terms-check"
-          />
-          <span>
-            I confirm that I am a licensed medical professional and I consent to Senebiclabs
-            contacting me when the mobile app launches.
+    <div>
+      {/* completed rows */}
+      {FIELDS.slice(0, step).map((f, i) => (
+        <div key={f.key} style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: 24,
+          padding: '12px 0',
+          borderBottom: '1px solid var(--hairline)',
+        }}>
+          <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink)', minWidth: 72 }}>
+            {f.label}
           </span>
-        </label>
-        <button className="mf-submit" type="submit" disabled={loading || !agreedToTerms} style={{ width: '100%' }}>
-          {loading ? 'Submitting…' : 'Reserve your place →'}
-        </button>
-        <span className="mf-note" style={{ textAlign: 'center' }}>
-          Every application is reviewed personally. We verify credentials before the app launches.
-        </span>
-      </div>
-      {error && <p className="mf-error" style={{ textAlign: 'center' }}>{error}</p>}
-    </form>
+          <span style={{ fontSize: 16, flex: 1 }}>
+            {form[f.key] || '—'}
+          </span>
+          <button
+            onClick={() => setStep(i)}
+            style={{ fontFamily: 'Geist Mono, monospace', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}
+          >
+            edit
+          </button>
+        </div>
+      ))}
+
+      {/* active field */}
+      {step < FIELDS.length && (
+        <div style={{ padding: '28px 0 8px' }}>
+          <label style={{ display: 'block', fontFamily: 'Geist Mono, monospace', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink)', marginBottom: 16 }}>
+            {current.label}
+            {!current.required && <span style={{ marginLeft: 8 }}>— optional</span>}
+          </label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <input
+              ref={inputRef}
+              type={current.type}
+              placeholder={current.placeholder}
+              value={form[current.key]}
+              onChange={e => setForm(f => ({ ...f, [current.key]: e.target.value }))}
+              onKeyDown={handleKey}
+              autoComplete="off"
+              style={{
+                flex: 1,
+                background: 'none',
+                border: 'none',
+                borderBottom: '1px solid #FFFFFF',
+                outline: 'none',
+                fontSize: 22,
+                fontWeight: 400,
+                fontFamily: 'inherit',
+                color: 'var(--ink)',
+                padding: '6px 0 10px',
+              }}
+            />
+            <button
+              onClick={advance}
+              style={{
+                fontFamily: 'Geist Mono, monospace',
+                fontSize: 12,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: '#000000',
+                background: '#FFFFFF',
+                border: 'none',
+                borderRadius: 999,
+                padding: '10px 22px',
+                cursor: 'pointer',
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
+                fontWeight: 600,
+              }}
+            >
+              {!current.required ? 'Skip →' : 'Next ↵'}
+            </button>
+          </div>
+
+          {/* progress bar */}
+          <div style={{ display: 'flex', gap: 4, marginTop: 24 }}>
+            {FIELDS.map((_, i) => (
+              <div key={i} style={{ flex: 1, height: 2, borderRadius: 1, background: i <= step ? '#FFFFFF' : 'transparent', border: i <= step ? 'none' : '1px solid #FFFFFF' }} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* confirm step */}
+      {step === FIELDS.length && (
+        <div style={{ paddingTop: 32 }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 14, cursor: 'pointer' }}>
+            <div
+              role="checkbox"
+              aria-checked={agreed}
+              tabIndex={0}
+              onClick={() => setAgreed(a => !a)}
+              onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setAgreed(a => !a) } }}
+              style={{
+                width: 18, height: 18,
+                border: '1px solid #FFFFFF',
+                borderRadius: 4,
+                background: agreed ? 'var(--ink)' : 'none',
+                flexShrink: 0,
+                marginTop: 2,
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              {agreed && (
+                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                  <polyline points="1 4 4 7 9 1" stroke="var(--navy)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </div>
+            <span style={{ fontSize: 15, lineHeight: 1.65 }}>
+              I am a licensed medical professional and I consent to Senebic contacting me when the app launches.
+            </span>
+          </label>
+
+          <div style={{ marginTop: 28, display: 'flex', alignItems: 'center', gap: 20 }}>
+            <button
+              onClick={submit}
+              disabled={!agreed || loading}
+              style={{
+                fontFamily: 'Geist Mono, monospace',
+                fontSize: 11,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                background: agreed ? 'var(--ink)' : 'transparent',
+                color: agreed ? 'var(--navy)' : 'var(--ink)',
+                border: '1px solid #FFFFFF',
+                borderRadius: 999,
+                padding: '13px 28px',
+                cursor: agreed && !loading ? 'pointer' : 'default',
+              }}
+            >
+              {loading ? 'Submitting…' : 'Reserve my place'}
+            </button>
+            <button
+              onClick={() => setStep(FIELDS.length - 1)}
+              style={{ fontFamily: 'Geist Mono, monospace', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              ← back
+            </button>
+          </div>
+
+          {error && <Toast message={error} onDismiss={() => setError('')} />}
+        </div>
+      )}
+    </div>
   )
 }
+
+// ── PAGE ──────────────────────────────────────────────────────────────────────
 
 export default function ExpertsPage() {
   return (
@@ -167,101 +286,98 @@ export default function ExpertsPage() {
       <NavBar active="experts" />
 
       {/* Hero */}
-      <section className="hero noise" style={{ padding: '180px 0 160px', textAlign: 'center' }}>
+      <section style={{ padding: '180px 0 100px', textAlign: 'center' }}>
         <div className="wrap">
-          <span className="micro" style={{ marginBottom: 32, display: 'block' }}>Specialist network · Pre-launch</span>
+          <span className="micro" style={{ display: 'block', color: 'var(--ink)', marginBottom: 28 }}>Senebic App · Pre-launch</span>
           <h1 style={{
-            fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-            fontWeight: 100,
-            fontSize: 'clamp(48px, 7vw, 88px)',
-            lineHeight: 1.05,
+            fontWeight: 300,
+            fontSize: 'clamp(44px, 6vw, 80px)',
+            lineHeight: 1.06,
             letterSpacing: '0.02em',
-            textWrap: 'balance',
-            marginBottom: 28,
+            maxWidth: 800,
+            marginBottom: 32,
+            marginLeft: 'auto',
+            marginRight: 'auto',
           }}>
-            See only the cases<br />that fit your expertise.
+            An app that sends you the patients who actually need you.
           </h1>
-          <p style={{ fontSize: 20, color: 'var(--ink)', lineHeight: 1.75, maxWidth: 560, margin: '0 auto 40px' }}>
-            We are building the mobile app. Submit your credentials now and we will verify them before launch. When the app goes live, you will be among the first specialists activated on the network.
+          <p style={{ fontSize: 18, lineHeight: 1.75, maxWidth: 540, marginBottom: 48, marginLeft: 'auto', marginRight: 'auto' }}>
+            Senebic is a mobile app for patients. They describe their symptoms. The app finds the specialist whose expertise fits their exact presentation. That specialist is you — if you are on the network when it launches.
           </p>
-          <a href="#apply" className="nav-join-cta" style={{ fontSize: 13, padding: '12px 28px' }}>
-            Reserve your place →
+          <a href="#apply" className="nav-join-cta" style={{ fontSize: 11, padding: '12px 24px' }}>
+            Join the network →
           </a>
         </div>
       </section>
 
-      {/* Benefits */}
-      <section style={{ padding: '100px 0', borderTop: '1px solid var(--hairline)' }}>
+      {/* How the app works */}
+      <section style={{ padding: '80px 0 60px', borderTop: '1px solid var(--hairline)' }}>
         <div className="wrap">
-          <span className="micro" style={{ display: 'block', marginBottom: 20 }}>What you get</span>
-          <h2 style={{
-            fontFamily: 'Geist, sans-serif',
-            fontWeight: 600,
-            fontSize: 'clamp(30px, 4vw, 52px)',
-            letterSpacing: '-0.025em',
-            lineHeight: 1.08,
-            marginBottom: 64,
-            textWrap: 'balance',
-          }}>
-            Better cases. Less wasted time.
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, background: 'var(--hairline)', border: '1px solid var(--hairline)', borderRadius: 16, overflow: 'hidden' }}>
-            {BENEFITS.map(b => (
-              <div key={b.heading}
-                style={{ background: 'var(--navy)', padding: '52px 48px', transition: 'background 0.25s' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--navy-2)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'var(--navy)')}>
-                <h3 style={{ fontFamily: 'Geist, sans-serif', fontSize: 22, fontWeight: 500, letterSpacing: '-0.01em', lineHeight: 1.2, marginBottom: 16 }}>{b.heading}</h3>
-                <p style={{ fontSize: 17, color: 'var(--ink)', lineHeight: 1.7 }}>{b.body}</p>
+          <span className="micro" style={{ display: 'block', color: 'var(--ink)', marginBottom: 52, textAlign: 'center' }}>How the app works</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0 80px' }}>
+            {HOW_IT_WORKS.map((item, i) => (
+              <div key={item.heading} style={{ borderTop: '1px solid var(--hairline)', padding: '36px 0' }}>
+                <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'var(--ink)', display: 'block', marginBottom: 16 }}>
+                  0{i + 1}
+                </span>
+                <h3 style={{ fontSize: 21, fontWeight: 400, letterSpacing: '-0.01em', marginBottom: 12 }}>
+                  {item.heading}
+                </h3>
+                <p style={{ fontSize: 16, lineHeight: 1.7 }}>{item.body}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="philosophy" style={{ paddingTop: 100 }}>
+      {/* Why join now */}
+      <section style={{ padding: '80px 0', borderTop: '1px solid var(--hairline)', textAlign: 'center' }}>
         <div className="wrap">
-          <span className="micro">How it works</span>
-          <p className="philosophy-statement" style={{ marginTop: 20 }}>
-            Apply. Get verified.<br />
-            <em style={{ color: 'var(--teal)' }}>Start seeing the right patients.</em>
-          </p>
-          <div className="philosophy-pillars">
-            {HOW.map(step => (
-              <div className="pillar" key={step.n}>
-                <div className="pn">{step.n}</div>
-                <h3>{step.heading}</h3>
-                <p>{step.body}</p>
+          <div style={{ maxWidth: 680, margin: '0 auto', marginBottom: 64 }}>
+            <span className="micro" style={{ display: 'block', color: 'var(--ink)', marginBottom: 28 }}>Why join before launch</span>
+            <h2 style={{ fontWeight: 300, fontSize: 'clamp(32px, 4vw, 56px)', lineHeight: 1.08, letterSpacing: '0.02em', marginBottom: 24 }}>
+              The network launches with you already in it.
+            </h2>
+            <p style={{ fontSize: 18, lineHeight: 1.75 }}>
+              We verify every specialist before the app goes live. Joining now means your profile is in the matching engine from day one — not waiting in a queue after launch while unverified doctors catch up.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* How to join */}
+      <section style={{ padding: '0 0 80px', borderTop: '1px solid var(--hairline)' }}>
+        <div className="wrap" style={{ paddingTop: 80 }}>
+          <span className="micro" style={{ display: 'block', color: 'var(--ink)', marginBottom: 52, textAlign: 'center' }}>How to join</span>
+          <div className="philosophy-pillars" style={{ marginTop: 0 }}>
+            {STEPS.map(s => (
+              <div className="pillar" key={s.n}>
+                <div className="pn">{s.n}</div>
+                <h3>{s.heading}</h3>
+                <p style={{ color: 'var(--ink)' }}>{s.body}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Application form, centred */}
-      <section id="apply" style={{ padding: '120px 0', borderTop: '1px solid var(--hairline)', textAlign: 'center' }}>
+      {/* Application */}
+      <section id="apply" style={{ padding: '80px 0 120px', borderTop: '1px solid var(--hairline)', textAlign: 'center' }}>
         <div className="wrap">
-          <span className="micro" style={{ display: 'block', marginBottom: 24 }}>Apply to join</span>
-          <h2 style={{
-            fontFamily: 'Geist, sans-serif',
-            fontWeight: 600,
-            fontSize: 'clamp(32px, 4.5vw, 56px)',
-            letterSpacing: '-0.028em',
-            lineHeight: 1.06,
-            marginBottom: 16,
-            textWrap: 'balance',
-          }}>
-            Reserve your place before we launch.
-          </h2>
-          <p style={{ fontSize: 17, color: 'var(--slate)', lineHeight: 1.7, maxWidth: 520, margin: '0 auto 56px' }}>
-            Submit your credentials now. We review every application personally and verify them before the app launches. When it does, your profile goes live immediately.
-          </p>
-          <ApplicationForm />
+          <div style={{ maxWidth: 560, margin: '0 auto' }}>
+            <span className="micro" style={{ display: 'block', color: 'var(--ink)', marginBottom: 24 }}>Apply to join</span>
+            <h2 style={{ fontWeight: 300, fontSize: 'clamp(28px, 3vw, 44px)', letterSpacing: '0.02em', lineHeight: 1.1, marginBottom: 20 }}>
+              Reserve your place on the network.
+            </h2>
+            <p style={{ fontSize: 16, lineHeight: 1.7, marginBottom: 52 }}>
+              Submit your details. We verify your credentials and add you to the network before the app launches. When the first patients open the app, you will already be there.
+            </p>
+            <div style={{ textAlign: 'left' }}>
+              <StepForm />
+            </div>
+          </div>
         </div>
       </section>
-
-      <FooterSection />
     </>
   )
 }

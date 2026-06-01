@@ -12,10 +12,11 @@ export async function POST(req: NextRequest) {
     })
     const data = await res.json()
     if (!res.ok) {
-      return NextResponse.json(
-        { ok: false, message: data.detail ?? 'Something went wrong. Please try again.' },
-        { status: res.status }
-      )
+      const detail = data.detail
+      const message = Array.isArray(detail)
+        ? detail.map((e: { msg?: string }) => e.msg ?? 'Invalid field').join('. ')
+        : typeof detail === 'string' ? detail : 'Something went wrong. Please try again.'
+      return NextResponse.json({ ok: false, message }, { status: res.status })
     }
     return NextResponse.json(data)
   } catch {

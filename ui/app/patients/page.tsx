@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import NavBar from '../components/NavBar'
 import FooterSection from '../components/sections/FooterSection'
+import Toast from '../components/ui/Toast'
 
 function useLocation() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
@@ -75,7 +76,7 @@ function WaitlistForm() {
       <button className="mf-submit" type="submit" disabled={loading}>
         {loading ? 'Joining…' : 'Join the waitlist'}
       </button>
-      {error && <p style={{ width: '100%', textAlign: 'center', fontSize: 14, color: 'var(--red, #e05)' }}>{error}</p>}
+      {error && <Toast message={error} onDismiss={() => setError('')} />}
     </form>
   )
 }

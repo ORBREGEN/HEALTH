@@ -29,9 +29,8 @@ export default function GoalSection() {
           {GOAL.body}
         </p>
 
-        <a href="/vision" className="iso-cta">{GOAL.cta} →</a>
 
-      </div>
+</div>
     </section>
   )
 }

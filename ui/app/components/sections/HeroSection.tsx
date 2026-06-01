@@ -14,16 +14,6 @@ export default function HeroSection() {
     }}>
       <div className="wrap" style={{ width: '100%' }}>
 
-        <div style={{ marginBottom: 40 }}>
-          <svg width="40" height="40" viewBox="0 0 26 26" fill="none" style={{ color: 'var(--teal)' }}>
-            <circle cx="13" cy="13" r="11" stroke="currentColor" strokeWidth="1.6" fill="none"/>
-            <path d="M 4 11 C 7 5 11 6 13 9.5 C 15 13 19 12 22 8"
-                  stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
-            <path d="M 4 18 C 7 12 11 13 13 16.5 C 15 20 19 19 22 15"
-                  stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none"/>
-          </svg>
-        </div>
-
         <h1 style={{
           fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
           fontWeight: 100,
