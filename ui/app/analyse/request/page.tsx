@@ -10,6 +10,7 @@ export default function AnalyseRequestPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
+    if (!code.trim()) { setError('Enter your access code.'); return }
     setError('')
     setLoading(true)
     try {
@@ -126,7 +127,7 @@ export default function AnalyseRequestPage() {
 
             <button
               type="submit"
-              disabled={loading || !code.trim()}
+              disabled={loading}
               style={{
                 fontFamily: 'Geist Mono, monospace',
                 fontSize: 11,
@@ -137,8 +138,8 @@ export default function AnalyseRequestPage() {
                 border: 'none',
                 borderRadius: 999,
                 padding: '12px 24px',
-                cursor: loading || !code.trim() ? 'not-allowed' : 'pointer',
-                opacity: loading || !code.trim() ? 0.45 : 1,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.45 : 1,
                 transition: 'opacity 0.15s',
               }}
             >
