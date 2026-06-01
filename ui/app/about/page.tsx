@@ -18,7 +18,7 @@ const Label = ({ children }: { children: string }) => (
 export default function AboutPage() {
   return (
     <>
-      <NavBar />
+      <NavBar active="about" />
 
       {/* HERO */}
       <section style={{ padding: 'clamp(120px, 15vw, 180px) 0 clamp(48px, 6vw, 80px)' }}>
@@ -44,7 +44,7 @@ export default function AboutPage() {
           }}>
             Senebiclabs is a biological intelligence company. We are building a system
             that understands what a healthy human body looks like at its most
-            fundamental level — so that anything departing from it can be seen,
+            fundamental level, so that anything departing from it can be seen,
             described, and eventually corrected. We start with the lung.
           </p>
         </div>
@@ -70,11 +70,11 @@ export default function AboutPage() {
               <p style={{ fontSize: 'clamp(17px, 1.6vw, 20px)', lineHeight: 1.85, color: 'var(--ink)', fontWeight: 300 }}>
                 We started with a question that sounds deceptively simple: what does a
                 healthy human body actually look like? Not in general terms. Not as a
-                textbook diagram. But precisely — at the level of individual cells,
+                textbook diagram. But precisely, at the level of individual cells,
                 across real people, with all their variation.
               </p>
               <p style={{ fontSize: 'clamp(16px, 1.5vw, 19px)', lineHeight: 1.85, color: 'var(--slate)', fontWeight: 300 }}>
-                Nobody had a complete answer. Medicine has always worked the other way around —
+                Nobody had a complete answer. Medicine has always worked the other way around:
                 studying disease to understand what went wrong, rather than studying health
                 to know what right looks like. That gap is the reason diagnoses come late.
                 It is the reason patients get mismatched. It is the reason treatments
@@ -111,14 +111,14 @@ export default function AboutPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
               <p style={{ fontSize: 'clamp(17px, 1.6vw, 20px)', lineHeight: 1.85, color: 'var(--ink)', fontWeight: 300 }}>
                 The intelligence engine is the core. It takes a biological sample and
-                describes precisely what has changed from healthy — which cell populations
+                describes precisely what has changed from healthy: which cell populations
                 are out of proportion, which biological processes are disrupted, and how
                 far each finding sits from the normal range. Clear. Traceable. Grounded
                 in real human biology.
               </p>
               <p style={{ fontSize: 'clamp(16px, 1.5vw, 19px)', lineHeight: 1.85, color: 'var(--slate)', fontWeight: 300 }}>
-                On top of that, we are building a network of specialists — respiratory
-                physicians and researchers who interact with the model's findings, add
+                On top of that, we are building a network of respiratory physicians
+                and researchers who interact with the model's findings, add
                 clinical judgment, and help it get sharper over time. The model does not
                 name diseases. Specialists do. We are deliberate about that boundary.
               </p>
@@ -161,7 +161,7 @@ export default function AboutPage() {
               {
                 n: 'II',
                 title: 'The model describes. People judge.',
-                body: 'The system surfaces deviations. Clinicians interpret them. We are strict about this line — the model does not diagnose and we will never design it to. Clinical judgment belongs to clinicians.',
+                body: 'The system surfaces deviations. Clinicians interpret them. We are strict about this line: the model does not diagnose and we will never design it to. Clinical judgment belongs to clinicians.',
               },
               {
                 n: 'III',
@@ -195,31 +195,6 @@ export default function AboutPage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* GET IN TOUCH */}
-      <section style={{ padding: 'clamp(64px, 8vw, 100px) 0', borderTop: '1px solid var(--hairline)' }}>
-        <div className="wrap">
-          <Label>Get in touch</Label>
-          <h2 style={{
-            fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-            fontWeight: 100,
-            fontSize: 'clamp(28px, 3.8vw, 52px)',
-            lineHeight: 1.1,
-            letterSpacing: '0.02em',
-            marginBottom: 24,
-            maxWidth: 560,
-          }}>
-            We want to hear from you.
-          </h2>
-          <p style={{ fontSize: 'clamp(16px, 1.5vw, 19px)', lineHeight: 1.85, color: 'var(--slate)', fontWeight: 300, maxWidth: 520, marginBottom: 48 }}>
-            Whether you are a patient, a specialist, a researcher, or simply someone
-            who thinks we are asking the right question — reach out. We read everything.
-          </p>
-          <a href="mailto:godwinyampoi449@gmail.com" className="nav-join-cta">
-            Send us a message →
-          </a>
         </div>
       </section>
 

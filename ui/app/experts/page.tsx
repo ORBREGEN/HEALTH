@@ -286,7 +286,7 @@ export default function ExpertsPage() {
       <NavBar active="experts" />
 
       {/* Hero */}
-      <section style={{ padding: '180px 0 100px', textAlign: 'center' }}>
+      <section className="experts-hero" style={{ textAlign: 'center' }}>
         <div className="wrap">
           <span className="micro" style={{ display: 'block', color: 'var(--ink)', marginBottom: 28 }}>Senebic App · Pre-launch</span>
           <h1 style={{
@@ -314,7 +314,7 @@ export default function ExpertsPage() {
       <section style={{ padding: '80px 0 60px', borderTop: '1px solid var(--hairline)' }}>
         <div className="wrap">
           <span className="micro" style={{ display: 'block', color: 'var(--ink)', marginBottom: 52, textAlign: 'center' }}>How the app works</span>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0 80px' }}>
+          <div className="experts-how-grid">
             {HOW_IT_WORKS.map((item, i) => (
               <div key={item.heading} style={{ borderTop: '1px solid var(--hairline)', padding: '36px 0' }}>
                 <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'var(--ink)', display: 'block', marginBottom: 16 }}>

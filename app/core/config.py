@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     FROM_EMAIL: str = "Senebiclabs <noreply@senebiclabs.com>"
     ADMIN_EMAIL: str = "godwinyampoi449@gmail.com"
 
+    # CORS — comma-separated list of allowed origins; defaults to all in dev
+    CORS_ORIGINS: str = "*"
+
     # Admin API key — required for approve/reject endpoints
     ADMIN_API_KEY: str | None = None
 

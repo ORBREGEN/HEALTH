@@ -71,7 +71,7 @@ function WaitlistForm() {
         onChange={e => setEmail(e.target.value)}
         required
         disabled={loading}
-        style={{ width: 300, margin: 0 }}
+        style={{ maxWidth: 300, width: '100%', margin: 0 }}
       />
       <button className="mf-submit" type="submit" disabled={loading}>
         {loading ? 'Joining…' : 'Join the waitlist'}

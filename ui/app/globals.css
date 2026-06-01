@@ -2079,3 +2079,26 @@ details[open] > .faq-q {
   .ol-hero-h1 { font-size: 34px; }
   .ol-stat-k { font-size: 34px; }
 }
+
+/* ── EXPERTS PAGE ─────────────────────────────────────────────────── */
+.experts-hero { padding: clamp(100px, 14vw, 180px) 0 clamp(60px, 8vw, 100px); }
+.experts-how-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 80px;
+}
+
+@media (max-width: 768px) {
+  .experts-how-grid { grid-template-columns: 1fr; gap: 0; }
+}
+
+/* ── FOOTER GRID FIX (3 cols now Trust column is removed) ─────────── */
+footer .grid { grid-template-columns: 1.6fr 1fr 1fr !important; }
+
+@media (max-width: 768px) {
+  footer .grid { grid-template-columns: 1fr 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  footer .grid { grid-template-columns: 1fr !important; }
+}
