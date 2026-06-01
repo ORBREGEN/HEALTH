@@ -2080,66 +2080,6 @@ details[open] > .faq-q {
   .ol-stat-k { font-size: 34px; }
 }
 
-/* ── ANALYSE PAGE ────────────────────────────────────────────────── */
-@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-.appear { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
-.analyse-bg { background: #080C16; min-height: 100vh; }
-.analyse-wrap { max-width: 1400px; margin: 0 auto; padding: 0 56px; }
-.analyse-layout { display: grid; grid-template-columns: 420px 1fr; gap: 36px; align-items: start; }
-
-.sidebar { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.09); border-radius: 18px; overflow: hidden; position: sticky; top: 92px; }
-.warn-box { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 12px 14px; }
-
-.drop-zone { border: 1.5px dashed rgba(255,255,255,0.22); border-radius: 14px; padding: 40px 24px; text-align: center; transition: border-color 0.2s, background 0.2s; cursor: pointer; }
-.drop-zone:hover, .drop-zone.over { border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.025); }
-
-.gene-table { width: 100%; border-collapse: collapse; }
-.gene-table th { font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.9); text-align: left; padding: 0 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-.gene-table td { padding: 7px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; font-family: 'Geist Mono', monospace; color: rgba(255,255,255,0.95); }
-.gene-table td.val { text-align: right; color: rgba(255,255,255,0.85); }
-.gene-table tr:last-child td { border-bottom: none; }
-.del-btn { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.45); font-size: 16px; padding: 0; transition: color 0.15s; }
-.del-btn:hover { color: rgba(255,255,255,0.95); }
-
-.run-btn { width: 100%; padding: 16px 24px; border: none; border-radius: 10px; font-size: 17px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s, transform 0.12s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-.run-btn.active { background: #fff; color: #080C16; }
-.run-btn.active:hover { opacity: 0.85; transform: translateY(-1px); }
-.run-btn.inactive { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.45); cursor: not-allowed; }
-
-.ghost-btn { width: 100%; padding: 13px 24px; background: transparent; border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; font-size: 14px; font-family: 'Geist Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.88); cursor: pointer; transition: border-color 0.2s, color 0.2s; }
-.ghost-btn:hover { border-color: rgba(255,255,255,0.65); color: #fff; }
-.ghost-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-.add-btn { padding: 9px 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); border-radius: 7px; font-size: 14px; font-family: 'Geist Mono', monospace; color: #fff; cursor: pointer; transition: background 0.15s, border-color 0.15s; white-space: nowrap; flex-shrink: 0; }
-.add-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.35); }
-
-.gene-input { flex: 1; padding: 9px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 7px; font-size: 14px; font-family: 'Geist Mono', monospace; color: #fff; outline: none; transition: border-color 0.15s; min-width: 0; }
-.gene-input:focus { border-color: rgba(255,255,255,0.4); }
-.gene-input::placeholder { color: rgba(255,255,255,0.38); }
-
-.norm-radio { display: flex; gap: 6px; flex-direction: column; }
-.norm-option { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 8px 10px; border-radius: 8px; transition: background 0.15s; }
-.norm-option:hover { background: rgba(255,255,255,0.04); }
-.norm-option input[type=radio] { margin-top: 3px; flex-shrink: 0; accent-color: #fff; }
-.norm-label { font-size: 14px; color: rgba(255,255,255,0.92); }
-.norm-sub { font-size: 12px; color: rgba(255,255,255,0.62); font-family: 'Geist Mono', monospace; margin-top: 2px; }
-
-.col-pill { padding: 10px 18px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.04); font-family: 'Geist Mono', monospace; font-size: 13px; color: rgba(255,255,255,0.92); cursor: pointer; transition: background 0.15s, border-color 0.15s; text-align: left; }
-.col-pill:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.4); }
-
-@media (max-width: 1100px) {
-  .analyse-layout { grid-template-columns: 340px 1fr; gap: 24px; }
-  .analyse-wrap { padding: 0 32px; }
-}
-@media (max-width: 860px) {
-  .analyse-layout { grid-template-columns: 1fr; }
-  .sidebar { position: static !important; }
-  .analyse-wrap { padding: 0 20px; }
-}
-@media (max-width: 640px) {
-  .analyse-wrap { padding: 0 16px; }
-}
-
 /* ── EXPERTS PAGE ─────────────────────────────────────────────────── */
 .experts-hero { padding: clamp(100px, 14vw, 180px) 0 clamp(60px, 8vw, 100px); }
 .experts-how-grid {
