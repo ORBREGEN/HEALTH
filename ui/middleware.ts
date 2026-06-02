@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+const COOKIE = 'analyse_access'
+
 export function middleware(request: NextRequest) {
-  return NextResponse.next()
+  const token = request.cookies.get(COOKIE)?.value
+  const valid = process.env.ANALYSE_ACCESS_TOKEN
+
+  if (!valid) return NextResponse.next()
+  if (token === valid) return NextResponse.next()
+
+  return NextResponse.redirect(new URL('/analyse/request', request.url))
 }
 
 export const config = {
-  matcher: [],
+  matcher: ['/analyse'],
 }
