@@ -412,14 +412,42 @@ export default function AnalysePage() {
 
   function loadSampleProfile() {
     setRows([
-      { gene: 'COL1A1', value: '4.21' }, { gene: 'SFTPC',  value: '0.82' },
-      { gene: 'FN1',    value: '3.84' }, { gene: 'SFTPB',  value: '0.91' },
-      { gene: 'MUC5B',  value: '2.94' }, { gene: 'SPP1',   value: '2.41' },
-      { gene: 'TGFB1',  value: '1.92' }, { gene: 'AGER',   value: '0.61' },
-      { gene: 'ACTA2',  value: '3.12' }, { gene: 'VEGFA',  value: '0.89' },
-      { gene: 'COL3A1', value: '3.55' }, { gene: 'TIMP1',  value: '2.18' },
+      // ── Fibroblast / ECM expansion (hallmark of IPF)
+      { gene: 'COL1A1',  value: '4.21' }, { gene: 'COL1A2',  value: '3.85' },
+      { gene: 'COL3A1',  value: '3.55' }, { gene: 'FN1',     value: '3.84' },
+      { gene: 'POSTN',   value: '3.18' }, { gene: 'ACTA2',   value: '3.12' },
+      { gene: 'VIM',     value: '2.95' }, { gene: 'TGFB1',   value: '1.92' },
+      { gene: 'CTGF',    value: '2.14' }, { gene: 'MMP2',    value: '2.31' },
+      { gene: 'TIMP1',   value: '2.18' }, { gene: 'LOXL2',   value: '1.87' },
+      // ── AT2 surfactant depletion
+      { gene: 'SFTPC',   value: '0.82' }, { gene: 'SFTPB',   value: '0.91' },
+      { gene: 'SFTPA1',  value: '0.75' }, { gene: 'ABCA3',   value: '1.12' },
+      { gene: 'NAPSA',   value: '0.93' }, { gene: 'LPCAT1',  value: '1.05' },
+      // ── AT1 markers (depleted in IPF)
+      { gene: 'AGER',    value: '0.61' }, { gene: 'PDPN',    value: '0.72' },
+      { gene: 'CAV1',    value: '0.88' }, { gene: 'HOPX',    value: '0.65' },
+      // ── SPP1 macrophages and MUC5B (elevated in IPF)
+      { gene: 'SPP1',    value: '2.41' }, { gene: 'MUC5B',   value: '2.94' },
+      { gene: 'CD68',    value: '1.45' }, { gene: 'MRC1',    value: '1.12' },
+      { gene: 'MARCO',   value: '0.89' },
+      // ── Airway epithelium
+      { gene: 'SCGB1A1', value: '0.45' }, { gene: 'SCGB3A2', value: '0.52' },
+      { gene: 'KRT5',    value: '0.41' }, { gene: 'TP63',    value: '0.29' },
+      // ── Vascular endothelium
+      { gene: 'PECAM1',  value: '0.95' }, { gene: 'CDH5',    value: '0.88' },
+      { gene: 'VWF',     value: '0.72' }, { gene: 'VEGFA',   value: '0.89' },
+      // ── Smooth muscle
+      { gene: 'MYH11',   value: '0.45' }, { gene: 'TAGLN',   value: '0.89' },
+      { gene: 'CNN1',    value: '0.52' },
+      // ── Immune / inflammatory
+      { gene: 'CD8A',    value: '0.32' }, { gene: 'CD3E',    value: '0.28' },
+      { gene: 'IL6',     value: '0.45' }, { gene: 'CXCL8',   value: '0.61' },
+      { gene: 'TNF',     value: '0.38' },
+      // ── Housekeeping (reference anchors)
+      { gene: 'GAPDH',   value: '2.10' }, { gene: 'ACTB',    value: '3.20' },
+      { gene: 'B2M',     value: '2.80' },
     ])
-    setSampleId('IPF-SAMPLE-001')
+    setSampleId('IPF-DEMO-001')
     setReport(null); setInterp(null); setInterpUnavailable(false)
     setError(null); setColumnOptions(null); setParseWarnings([])
     setNormMode('log1p_cp10k')
@@ -715,10 +743,10 @@ FN1       3.84`}</pre>
                         No file? Try a sample profile
                       </p>
                       <button className="ghost-btn" onClick={loadSampleProfile}>
-                        Load IPF sample profile →
+                        Load IPF demo profile →
                       </button>
                       <p style={{ marginTop: 8, fontSize: 14, color: 'rgba(255,255,255,0.92)', fontFamily: 'monospace' }}>
-                        12 genes from a pulmonary fibrosis case · runs against the real model
+                        48 genes · pulmonary fibrosis case · fibroblast, AT2, macrophage, vascular compartments
                       </p>
                     </div>
                   </>
