@@ -1,9 +1,12 @@
-FROM python:3.10-slim
+FROM python:3.10
 
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    libgomp1 \
+    libopenblas-dev \
+    gfortran \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
