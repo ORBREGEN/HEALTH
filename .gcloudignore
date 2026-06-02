@@ -1,0 +1,35 @@
+# Cloud Build upload filter — explicit so gcloud does NOT fall back to .gitignore
+# (the .gitignore pattern "models/*" is non-anchored and wrongly strips app/models/)
+
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+.venv-1/
+venv/
+
+# Frontend — not part of the backend image
+ui/
+
+# Notebooks and one-off scripts
+notebooks/
+scripts/
+
+# Large data files (the trained model in models/respiratory_model/ IS included)
+data/
+*.h5ad
+*.csv
+
+# Local env
+.env
+.env.*
+*.env
+
+# Other deploy configs
+render.yaml
+railway.json
+Procfile
+README.md
