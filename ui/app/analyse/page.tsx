@@ -163,12 +163,11 @@ function applyNorm(rows: GeneRow[], mode: NormMode): GeneRow[] {
 
 // ─── Download report ──────────────────────────────────────────────────────────
 
-function buildReportCSV(report: DeviationReport, meta: { tissueType: string }): string {
+function buildReportCSV(report: DeviationReport): string {
   const lines: string[] = [
     `# Senebiclabs Respiratory Intelligence Engine — Deviation Report`,
     `# Sample ID,${report.sample_id}`,
     `# Analysed at,${new Date().toISOString()}`,
-    `# Tissue type,${meta.tissueType || 'not specified'}`,
     `# Overall deviation score,${(report.overall_deviation_score * 100).toFixed(1)}%`,
     `# Severity,${report.overall_deviation_score < 0.2 ? 'Mild' : report.overall_deviation_score < 0.4 ? 'Moderate' : 'Substantial'}`,
     `# Reference cells,${report.healthy_reference_cells}`,
@@ -224,7 +223,6 @@ export default function AnalysePage() {
   const [dragOver, setDragOver]         = useState(false)
   const [normMode, setNormMode]         = useState<NormMode>('log1p_cp10k')
   const [sampleId, setSampleId]         = useState('')
-  const [tissueType, setTissueType]     = useState('')
   // Manual entry
   const [geneInput, setGeneInput]       = useState('')
   const [valueInput, setValueInput]     = useState('')
@@ -354,14 +352,14 @@ export default function AnalysePage() {
   function clearAll() {
     setRows([]); setReport(null); setInterp(null); setError(null)
     setInputError(null); setParseWarnings([]); setColumnOptions(null)
-    setSampleId(''); setTissueType(''); setNormMode('log1p_cp10k')
+    setSampleId(''); setNormMode('log1p_cp10k')
     setGeneInput(''); setValueInput(''); setManualErr(null)
   }
 
   // ── Run ──────────────────────────────────────────────────────────────────
 
   const modelReady = modelStatus?.is_ready ?? false
-  const canRun = !loading && rows.length >= 10 && modelReady
+  const canRun = !loading && rows.length >= 10
 
   async function run() {
     const normalised = applyNorm(rows, normMode)
@@ -402,7 +400,7 @@ export default function AnalysePage() {
 
   function downloadReport() {
     if (!report) return
-    const csv = buildReportCSV(report, { tissueType })
+    const csv = buildReportCSV(report)
     const blob = new Blob([csv], { type: 'text/csv' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
@@ -813,25 +811,12 @@ FN1       3.84`}</pre>
                     </div>
 
                     {/* Sample metadata */}
-                    <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8, marginBottom: 16 }}>
+                    <div style={{ marginBottom: 16 }}>
                       <input
                         style={{ width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.11)', borderRadius: 8, fontSize: 14, color: '#fff', fontFamily: 'Geist Mono, monospace', outline: 'none', boxSizing: 'border-box' as const }}
                         placeholder="Sample ID  (optional)"
                         value={sampleId} onChange={e => setSampleId(e.target.value)}
                       />
-                      <select
-                        style={{ width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.11)', borderRadius: 8, fontSize: 14, color: tissueType ? '#fff' : 'rgba(255,255,255,0.38)', fontFamily: 'Geist Mono, monospace', outline: 'none', boxSizing: 'border-box' as const, cursor: 'pointer' }}
-                        value={tissueType} onChange={e => setTissueType(e.target.value)}
-                      >
-                        <option value="">Tissue type  (optional)</option>
-                        <option value="BAL">BAL — Bronchoalveolar lavage</option>
-                        <option value="Biopsy — lung parenchyma">Biopsy — lung parenchyma</option>
-                        <option value="Biopsy — bronchial">Biopsy — bronchial</option>
-                        <option value="Sputum">Sputum</option>
-                        <option value="Pleural fluid">Pleural fluid</option>
-                        <option value="Cell line">Cell line / in vitro</option>
-                        <option value="Other">Other</option>
-                      </select>
                     </div>
 
                     {/* Run button */}
@@ -843,7 +828,7 @@ FN1       3.84`}</pre>
 
                     {!modelReady && !statusLoading && (
                       <p style={{ marginTop: 12, fontSize: 13, color: 'rgba(255,255,255,0.78)', fontFamily: 'monospace', lineHeight: 1.7 }}>
-                        Model not reachable. Ensure the FastAPI server is running on port 8000.
+                        Model not ready. You can still run — the API will return details.
                       </p>
                     )}
                   </>
@@ -921,7 +906,6 @@ FN1       3.84`}</pre>
                       <div>
                         <div style={{ fontSize: 13, fontFamily: 'Geist Mono, monospace', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.93)', marginBottom: 6 }}>Sample ID</div>
                         <div style={{ fontSize: 22, fontFamily: 'Geist Mono, monospace', color: '#fff', fontWeight: 500 }}>{report.sample_id}</div>
-                        {tissueType && <div style={{ fontSize: 14, fontFamily: 'Geist Mono, monospace', color: 'rgba(255,255,255,0.92)', marginTop: 4 }}>{tissueType}</div>}
                       </div>
                       <div style={{ textAlign: 'right' as const, flexShrink: 0 }}>
                         <div style={{ fontSize: 13, fontFamily: 'Geist Mono, monospace', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.93)', marginBottom: 4 }}>Deviation score</div>
