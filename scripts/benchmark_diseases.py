@@ -193,24 +193,44 @@ def main() -> int:
     diseases = sorted(d for d in np.unique(disease_arr) if d.lower() != "normal")
     print(f"Found {len(diseases)} disease conditions to benchmark.\n")
 
-    rng = np.random.default_rng(seed=42)
+    # ── Single sequential pass: accumulate each disease's pseudo-bulk ────────────
+    # Streaming the file in row order is sequential disk I/O (fast). Per-disease
+    # random indexing on a 20 GB backed file is random-access (brutally slow), so
+    # we never do that. Memory: accumulator is n_diseases x n_genes (~tiny).
+    didx   = {d: i for i, d in enumerate(diseases)}
+    sums   = np.zeros((len(diseases), n_genes), dtype=np.float64)
+    counts = np.zeros(len(diseases), dtype=np.int64)
+
+    N = adata.n_obs
+    print(f"Streaming {N:,} cells in {CHUNK:,}-row chunks (one sequential pass) ...", flush=True)
+    for start in range(0, N, CHUNK):
+        end = min(start + CHUNK, N)
+        labels = disease_arr[start:end]
+        X = adata.X[start:end, :]                       # contiguous slice = sequential read
+        if issparse(X):
+            X = X.tocsr()
+        else:
+            X = np.asarray(X, dtype=np.float64)
+        for d, i in didx.items():
+            sel = np.where(labels == d)[0]
+            if len(sel) == 0:
+                continue
+            sub = X[sel, :]
+            sums[i]   += np.asarray(sub.sum(axis=0)).ravel() if issparse(sub) else sub.sum(axis=0)
+            counts[i] += len(sel)
+        if (start // CHUNK) % 20 == 0:
+            print(f"    {end:,}/{N:,} cells ...", flush=True)
+
+    # ── Score each disease from its accumulated pseudo-bulk ──────────────────────
     rows = []
     for disease in diseases:
-        pos = np.where(disease_arr == disease)[0]
-        n_cells = len(pos)
+        i = didx[disease]
+        n_cells = int(counts[i])
+        print(f"  [{disease}]  {n_cells:,} cells — scoring ...", flush=True)
         if n_cells == 0:
             continue
-        # Cap cells per disease — pseudo-bulk over a 50k sample is just as stable
-        # as over the full set, but fast, memory-safe, and deterministic.
-        if n_cells > MAX_CELLS_PER_DISEASE:
-            pos = np.sort(rng.choice(pos, size=MAX_CELLS_PER_DISEASE, replace=False))
-        print(f"  [{disease}]  {n_cells:,} cells (using {len(pos):,}) — building pseudo-bulk ...", flush=True)
+        vec = sums[i] / counts[i]
 
-        mask = np.zeros(len(disease_arr), dtype=bool)
-        mask[pos] = True
-        vec = pseudobulk_log1p_cp10k(adata, mask, n_genes)
-
-        # Collapse duplicate symbols (keep max-expressed), drop zeros
         genes: dict[str, float] = {}
         for sym, val in zip(symbols, vec):
             v = float(val)
