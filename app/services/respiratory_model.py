@@ -41,8 +41,10 @@ HEALTHY_VALUE        = "normal"
 GLOBAL_SAMPLE_SIZE   = 15_000   # cells sampled for global gene stats
 CELLS_PER_TYPE       = 500      # cells sampled per cell type
 MIN_CELLS_FOR_TYPE   = 100      # cell types with fewer cells are skipped
-MIN_EXPRESSING_FRAC  = 0.05     # genes expressed in <5% of cells are excluded
+MIN_EXPRESSING_FRAC  = 0.05     # genes expressed in <5% of donors are excluded
 TOP_MARKER_GENES     = 50       # top N genes stored per cell type profile
+MIN_CELLS_PER_DONOR  = 50       # donors with fewer healthy cells give noisy pseudo-bulk; skipped
+DONOR_CHUNK          = 20_000   # cells per chunk when summing a donor's pseudo-bulk
 
 
 # ── Model dataclass ────────────────────────────────────────────────────────────
@@ -156,23 +158,21 @@ def build_respiratory_model() -> dict:
     logger.info("Computing cell type composition ...")
     composition = _compute_composition(healthy_obs)
 
-    # ── Step 2: Global gene statistics (sampled for speed) ────────────────────
-    logger.info("Sampling %s healthy cells for global gene statistics ...", GLOBAL_SAMPLE_SIZE)
-    rng = np.random.default_rng(seed=42)
-    all_healthy_idx = np.where(adata.obs[DISEASE_COLUMN] == HEALTHY_VALUE)[0]
-    sample_idx = np.sort(rng.choice(all_healthy_idx, size=min(GLOBAL_SAMPLE_SIZE, len(all_healthy_idx)), replace=False))
+    # ── Step 2: Sample-level gene statistics (per healthy donor) ──────────────
+    # Real submissions are sample-level profiles (bulk or pseudo-bulk), not single
+    # cells. So the reference must be sample-level: build each healthy donor's
+    # pseudo-bulk (mean of adata.X over that donor's cells), then take mean/std
+    # ACROSS donors. Donor-to-donor std is the right yardstick for a sample — a
+    # disease sample's shift becomes significant, exactly like bulk RNA-seq DE.
+    # (Per-cell std, used before, is so large that averaged samples never deviate.)
+    logger.info("Building per-donor pseudo-bulk reference ...")
+    donor_matrix, n_donors_used = _per_donor_pseudobulk(adata, healthy_obs, len(gene_names))
+    logger.info("Per-donor matrix: %s donors x %s genes", n_donors_used, len(gene_names))
 
-    X = adata.X[sample_idx, :]
-    if issparse(X):
-        X = X.toarray()
-    else:
-        X = np.asarray(X)
-    # adata.X is already log1p(CP10K) (CellxGene-normalized). Use as-is.
-    # Do NOT re-normalize — that double-normalizes and distorts the reference.
-    X_norm = X
-
-    gene_stats = _compute_gene_stats(X_norm, gene_names)
-    logger.info("Gene statistics computed: %s genes tracked", len(gene_stats))
+    # adata.X is already log1p(CP10K); donor pseudo-bulk stays in that space.
+    gene_stats = _compute_gene_stats(donor_matrix, gene_names)
+    logger.info("Gene statistics computed (across %s donors): %s genes tracked",
+                n_donors_used, len(gene_stats))
 
     # ── Step 3: Per-cell-type gene profiles + CT-specific gene stats ─────────
     logger.info("Computing per-cell-type gene profiles ...")
@@ -198,10 +198,12 @@ def build_respiratory_model() -> dict:
         "source_file":         hlca_path.name,
         "disease_filter":      f"{DISEASE_COLUMN} == {HEALTHY_VALUE}",
         "normalization":       "log1p(CP10K)",
+        "gene_stats_basis":    "per-donor pseudo-bulk (mean/std across donors)",
+        "n_donors_in_ref":     int(n_donors_used),
         "cell_type_column":    CELL_TYPE_COLUMN,
-        "global_sample_size":  GLOBAL_SAMPLE_SIZE,
         "cells_per_type":      CELLS_PER_TYPE,
         "min_cells_for_type":  MIN_CELLS_FOR_TYPE,
+        "min_cells_per_donor": MIN_CELLS_PER_DONOR,
         "min_expressing_frac": MIN_EXPRESSING_FRAC,
     }
 
@@ -220,10 +222,46 @@ def build_respiratory_model() -> dict:
 
 
 def _normalize(X_raw: np.ndarray) -> np.ndarray:
-    """Normalize raw counts to log1p(CP10K)."""
+    """Normalize raw counts to log1p(CP10K). (Kept for raw-count inputs; the HLCA
+    build uses adata.X directly since it is already log1p CP10K.)"""
     totals = X_raw.sum(axis=1, keepdims=True)
     totals = np.where(totals == 0, 1, totals)
     return np.log1p(X_raw / totals * 10_000)
+
+
+def _per_donor_pseudobulk(adata, healthy_obs, n_genes: int):
+    """Build a (n_donors x n_genes) matrix of per-donor pseudo-bulk profiles.
+
+    Each donor's profile is the per-gene mean of adata.X (already log1p CP10K)
+    over that donor's healthy cells. Memory-safe: sums each donor's cells in
+    sparse chunks, never densifying. Donors with < MIN_CELLS_PER_DONOR cells are
+    skipped to avoid noisy profiles.
+    """
+    from scipy.sparse import issparse as _issparse
+
+    healthy_mask = (adata.obs[DISEASE_COLUMN] == HEALTHY_VALUE).to_numpy()
+    donor_col    = adata.obs["donor_id"].to_numpy()
+
+    rows = []
+    for donor in sorted(healthy_obs["donor_id"].unique()):
+        pos = np.where(healthy_mask & (donor_col == donor))[0]
+        if len(pos) < MIN_CELLS_PER_DONOR:
+            continue
+        acc  = np.zeros(n_genes, dtype=np.float64)
+        seen = 0
+        for s in range(0, len(pos), DONOR_CHUNK):
+            chunk = pos[s:s + DONOR_CHUNK]
+            X = adata.X[chunk, :]
+            if _issparse(X):
+                acc += np.asarray(X.sum(axis=0)).ravel()
+            else:
+                acc += np.asarray(X, dtype=np.float64).sum(axis=0)
+            seen += len(chunk)
+        rows.append(acc / seen)
+
+    if not rows:
+        raise RuntimeError("No donors met MIN_CELLS_PER_DONOR; cannot build reference.")
+    return np.vstack(rows), len(rows)
 
 
 def _compute_composition(healthy_obs) -> dict:
