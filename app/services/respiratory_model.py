@@ -44,7 +44,8 @@ MIN_CELLS_FOR_TYPE   = 100      # cell types with fewer cells are skipped
 MIN_EXPRESSING_FRAC  = 0.05     # genes expressed in <5% of donors are excluded
 TOP_MARKER_GENES     = 50       # top N genes stored per cell type profile
 MIN_CELLS_PER_DONOR  = 50       # donors with fewer healthy cells give noisy pseudo-bulk; skipped
-DONOR_CHUNK          = 20_000   # cells per chunk when summing a donor's pseudo-bulk
+MAX_CELLS_PER_DONOR  = 3_000    # cap cells sampled per donor — a stable pseudo-bulk, bounds build time
+DONOR_CHUNK          = 10_000   # cells per chunk when summing a donor's pseudo-bulk
 
 
 # ── Model dataclass ────────────────────────────────────────────────────────────
@@ -247,12 +248,15 @@ def _per_donor_pseudobulk(adata, healthy_obs, n_genes: int):
 
     healthy_mask = (adata.obs[DISEASE_COLUMN] == HEALTHY_VALUE).to_numpy()
     donor_col    = adata.obs["donor_id"].to_numpy()
+    rng = np.random.default_rng(seed=42)
 
     rows = []
     for donor in sorted(healthy_obs["donor_id"].unique()):
         pos = np.where(healthy_mask & (donor_col == donor))[0]
         if len(pos) < MIN_CELLS_PER_DONOR:
             continue
+        if len(pos) > MAX_CELLS_PER_DONOR:                 # cap for speed + stable mean
+            pos = np.sort(rng.choice(pos, size=MAX_CELLS_PER_DONOR, replace=False))
         acc  = np.zeros(n_genes, dtype=np.float64)
         seen = 0
         for s in range(0, len(pos), DONOR_CHUNK):
