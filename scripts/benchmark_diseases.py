@@ -80,22 +80,39 @@ OUT_CSV      = "disease_benchmark_results.csv"
 # A disease "passes" if the model flags a substantial deviation AND surfaces at
 # least one of the expected pathway/gene themes. Themes are matched case-insensitively
 # against the model's returned pathway names and elevated gene symbols.
+# Established markers per disease (classic + single-cell-resolution). Matched
+# case-insensitively against the model's returned pathway names and elevated gene
+# symbols. Disease keys must match the HLCA `disease` values exactly.
+_FIBROSIS = ["fibros", "tgf", "emt", "col1a1", "col3a1", "col1a2", "fn1", "postn",
+             "cthrc1", "spp1", "acta2", "thy1", "sfrp2", "ctsk", "lox", "timp", "comp"]
 EXPECTED = {
-    "pulmonary fibrosis":               ["fibros", "tgf", "emt", "col1a1", "col3a1", "fn1", "postn"],
-    "non-specific interstitial pneumonia": ["fibros", "tgf", "col1a1", "emt"],
-    "hypersensitivity pneumonitis":     ["fibros", "tgf", "immune", "myeloid", "macrophage"],
-    "interstitial lung disease":        ["fibros", "tgf", "col1a1", "emt"],
-    "COVID-19":                         ["interferon", "cytokine", "nf-kb", "myeloid", "cxcl10", "isg"],
-    "pneumonia":                        ["myeloid", "cytokine", "nf-kb", "il6", "cxcl8", "neutrophil"],
-    "COPD":                             ["airway", "mucocil", "mucus", "epithel", "muc5", "inflamm"],
-    "pulmonary sarcoidosis":            ["macrophage", "myeloid", "immune", "granulom", "t cell"],
-    "lung adenocarcinoma":              ["prolifer", "epithel", "cell cycle", "mki67"],
-    "squamous cell lung carcinoma":     ["squamous", "krt5", "tp63", "prolifer", "epithel"],
-    "lung large cell carcinoma":        ["prolifer", "epithel", "cell cycle"],
-    "pleomorphic carcinoma":            ["prolifer", "epithel", "emt"],
-    "lymphangioleiomyomatosis":         ["smooth muscle", "acta2", "myh11", "mtor"],
-    "cystic fibrosis":                  ["airway", "mucus", "muc5", "inflamm", "epithel"],
-    "chronic rhinitis":                 ["airway", "epithel", "goblet", "mucus", "inflamm"],
+    "pulmonary fibrosis":                  _FIBROSIS,
+    "non-specific interstitial pneumonia": _FIBROSIS,
+    "interstitial lung disease":           _FIBROSIS,
+    "hypersensitivity pneumonitis":        ["fibros", "tgf", "immune", "myeloid", "macrophage",
+                                            "cxcl", "gbp", "interferon", "spp1"],
+    "COVID-19":                            ["interferon", "cytokine", "nf-kb", "myeloid", "cxcl10",
+                                            "cxcl9", "cxcl11", "isg", "ifit", "mx1", "gbp", "oas",
+                                            "irf", "ccl8", "antivir"],
+    "pneumonia":                           ["myeloid", "cytokine", "nf-kb", "il6", "cxcl8", "cxcl10",
+                                            "cxcl9", "cxcl11", "gbp", "ccl", "neutrophil", "s100a",
+                                            "interferon", "defensin", "slamf"],
+    "chronic obstructive pulmonary disease": ["airway", "mucocil", "mucus", "epithel", "muc5",
+                                            "inflamm", "goblet", "scgb", "neutrophil"],
+    "pulmonary sarcoidosis":               ["macrophage", "myeloid", "immune", "granulom", "t cell",
+                                            "cxcl", "gbp", "interferon", "cd"],
+    "lung adenocarcinoma":                 ["prolifer", "epithel", "cell cycle", "mki67", "top2a",
+                                            "napsa", "krt", "scgb", "sftp", "muc"],
+    "squamous cell lung carcinoma":        ["squamous", "krt5", "krt6", "krt17", "tp63", "sprr",
+                                            "prolifer", "epithel"],
+    "lung large cell carcinoma":           ["prolifer", "epithel", "cell cycle", "mki67", "krt"],
+    "pleomorphic carcinoma":               ["prolifer", "epithel", "emt", "vim", "krt", "cell cycle"],
+    "lymphangioleiomyomatosis":            ["smooth muscle", "acta2", "myh11", "mtor", "tagln",
+                                            "desmin", "vegf", "surfactant", "sftp"],
+    "cystic fibrosis":                     ["airway", "mucus", "muc5", "inflamm", "epithel", "cftr",
+                                            "scgb", "neutrophil", "defensin", "s100a"],
+    "chronic rhinitis":                    ["airway", "epithel", "goblet", "mucus", "inflamm",
+                                            "muc5", "scgb", "immune"],
 }
 
 DEVIATION_PASS = 0.20   # a disease should score clearly above healthy (healthy ≈ 0.00)
