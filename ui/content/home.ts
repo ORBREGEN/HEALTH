@@ -58,7 +58,7 @@ export const GOAL = {
   label: 'our goal',
   body:  'We are using machine learning to detect every deviation from human health, understand what caused it, and build the biological foundation to correct it.',
   cta:   'explore the science',
-  href:  '/vision',
+  href:  '/about',
 }
 
 // ─── THREE BLOCKS ─────────────────────────────────────────────────────────────
@@ -67,14 +67,14 @@ export const BLOCKS = [
   {
     label:   'OUR SCIENCE',
     heading: 'A biological reference model of the healthy human lung, built from real donor data.',
-    link:    'Our Tech',
-    href:    '/vision',
+    link:    'About us',
+    href:    '/about',
   },
   {
     label:   'OUR MISSION',
     heading: 'Understand every deviation from human health. Build the biological foundation to detect, describe, and correct every disease.',
-    link:    'Our Vision',
-    href:    '/vision',
+    link:    'About us',
+    href:    '/about',
   },
   {
     label:   'OUR FOUNDATION',
