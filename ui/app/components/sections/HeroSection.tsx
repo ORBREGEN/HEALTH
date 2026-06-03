@@ -41,6 +41,7 @@ export default function HeroSection() {
 
         <div style={{ display: 'flex', gap: 32, alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
           <a href="/experts" className="iso-cta">Join as specialist →</a>
+          <a href="/contribute" className="iso-cta iso-cta--muted">Contribute data →</a>
           <a href="/patients" className="iso-cta iso-cta--muted">For patients →</a>
         </div>
 

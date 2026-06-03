@@ -79,8 +79,8 @@ export const BLOCKS = [
   {
     label:   'OUR FOUNDATION',
     heading: 'We are building a network of specialists matched to patients by symptom and expertise. Join the founding cohort.',
-    link:    'Join as specialist',
-    href:    '/experts',
+    link:    '',
+    href:    '',
   },
 ]
 
