@@ -77,11 +77,14 @@ DEVIATION_PASS = 0.20   # a disease should score clearly above healthy (healthy 
 # ── Pseudo-bulk ─────────────────────────────────────────────────────────────────
 
 def pseudobulk_log1p_cp10k(adata, mask: np.ndarray, n_genes: int) -> np.ndarray:
-    """Mean over cells of per-cell log1p(CP10K). Chunked + sparse-safe.
+    """Mean over cells of per-cell log1p(CP10K). Chunked, stays sparse.
 
     Matches respiratory_model._normalize: raw counts -> log1p(counts/total*1e4).
+    Sparse throughout: log1p(0)=0 so sparsity is preserved, keeping memory tiny
+    (a dense chunk of 20k cells x 55k genes would be ~9 GB; sparse is a few hundred MB).
     Returns a dense vector of length n_genes (the per-cell normalized mean).
     """
+    from scipy.sparse import diags
     idx = np.where(mask)[0]
     running = np.zeros(n_genes, dtype=np.float64)
     seen = 0
@@ -89,13 +92,21 @@ def pseudobulk_log1p_cp10k(adata, mask: np.ndarray, n_genes: int) -> np.ndarray:
         rows = idx[start:start + CHUNK]
         X = adata.X[rows, :]
         if issparse(X):
-            X = X.toarray()
-        X = np.asarray(X, dtype=np.float64)
-        totals = X.sum(axis=1, keepdims=True)
-        totals[totals == 0] = 1.0                 # guard empty cells
-        Xn = np.log1p(X / totals * 10_000.0)      # per-cell log1p CP10K
-        running += Xn.sum(axis=0)
-        seen += Xn.shape[0]
+            X = X.tocsr().astype(np.float64)
+            totals = np.asarray(X.sum(axis=1)).ravel()
+            totals[totals == 0] = 1.0                     # guard empty cells
+            Xn = diags(1.0 / totals) @ X                  # row-normalize (sparse)
+            Xn = Xn * 10_000.0                            # CP10K (sparse)
+            Xn = Xn.log1p()                               # log1p on stored values only
+            running += np.asarray(Xn.sum(axis=0)).ravel()
+            seen += X.shape[0]
+        else:
+            X = np.asarray(X, dtype=np.float64)
+            totals = X.sum(axis=1, keepdims=True)
+            totals[totals == 0] = 1.0
+            Xn = np.log1p(X / totals * 10_000.0)
+            running += Xn.sum(axis=0)
+            seen += Xn.shape[0]
     if seen == 0:
         return running
     return running / seen
