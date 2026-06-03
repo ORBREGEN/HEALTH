@@ -10,7 +10,7 @@ const HOW_IT_WORKS = [
   },
   {
     heading: 'The app finds the right specialist',
-    body: 'Senebic analyses the presentation and matches the patient to the specialist whose expertise fits best — not just the nearest available doctor.',
+    body: 'Senebic analyses the presentation and matches the patient to the specialist whose expertise fits best, not just the nearest available doctor.',
   },
   {
     heading: 'You receive the case',
@@ -18,7 +18,7 @@ const HOW_IT_WORKS = [
   },
   {
     heading: 'You consult, remotely or in person',
-    body: 'The consultation happens on your terms — video, in clinic, or async. You get paid per case. No minimum commitment required.',
+    body: 'The consultation happens on your terms: video, in clinic, or async. You get paid per case. No minimum commitment required.',
   },
 ]
 
@@ -26,7 +26,7 @@ const STEPS = [
   {
     n: '01',
     heading: 'Apply',
-    body: 'Submit your name, email, and specialty. Every application is reviewed personally — not by an automated system.',
+    body: 'Submit your name, email, and specialty. Every application is reviewed personally, not by an automated system.',
   },
   {
     n: '02',
@@ -156,7 +156,7 @@ function StepForm() {
         <div style={{ padding: '28px 0 8px' }}>
           <label style={{ display: 'block', fontFamily: 'Geist Mono, monospace', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ink)', marginBottom: 16 }}>
             {current.label}
-            {!current.required && <span style={{ marginLeft: 8 }}>— optional</span>}
+            {!current.required && <span style={{ marginLeft: 8 }}>(optional)</span>}
           </label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <input
@@ -302,7 +302,7 @@ export default function ExpertsPage() {
             An app that sends you the patients who actually need you.
           </h1>
           <p style={{ fontSize: 18, lineHeight: 1.75, maxWidth: 540, marginBottom: 48, marginLeft: 'auto', marginRight: 'auto' }}>
-            Senebic is a mobile app for patients. They describe their symptoms. The app finds the specialist whose expertise fits their exact presentation. That specialist is you — if you are on the network when it launches.
+            Senebic is a mobile app for patients. They describe their symptoms. The app finds the specialist whose expertise fits their exact presentation. That specialist is you, if you are on the network when it launches.
           </p>
           <a href="#apply" className="nav-join-cta" style={{ fontSize: 11, padding: '12px 24px' }}>
             Join the network →
@@ -339,7 +339,7 @@ export default function ExpertsPage() {
               The network launches with you already in it.
             </h2>
             <p style={{ fontSize: 18, lineHeight: 1.75 }}>
-              We verify every specialist before the app goes live. Joining now means your profile is in the matching engine from day one — not waiting in a queue after launch while unverified doctors catch up.
+              We verify every specialist before the app goes live. Joining now means your profile is in the matching engine from day one, not waiting in a queue after launch while unverified doctors catch up.
             </p>
           </div>
         </div>

@@ -16,7 +16,7 @@ export const TRIAGE_CONVERSATION: ChatMessage[] = [
   },
   {
     role: 'user',
-    text: 'Some phlegm in the morning. No fever. Yes — gets short of breath on stairs.',
+    text: 'Some phlegm in the morning. No fever. Yes, gets short of breath on stairs.',
   },
   {
     role: 'ai',
