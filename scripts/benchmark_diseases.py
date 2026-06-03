@@ -74,6 +74,7 @@ def score_profile(disease: str, genes: dict) -> tuple[dict | None, int, str]:
         return None, 0, f"api error: {exc}"
 SYMBOL_FIELD = "feature_name"            # HLCA var column holding HGNC symbols; falls back to var_names
 CHUNK        = 20_000                    # cells per chunk — bounds memory on large diseases
+MAX_CELLS_PER_DISEASE = 50_000           # cap cells per disease — stable pseudo-bulk, avoids Colab OOM
 OUT_CSV      = "disease_benchmark_results.csv"
 
 # Expected biology per disease — the GRADING KEY ONLY. Never sent to the model.
@@ -186,18 +187,27 @@ def main() -> int:
         symbols = np.asarray(adata.var_names, dtype=str)
     n_genes = len(symbols)
 
-    diseases = [d for d in adata.obs[DISEASE_COL].astype(str).unique() if d.lower() != "normal"]
-    diseases.sort()
+    # Compute the disease label array once (avoids re-running astype(str) on 2.3M
+    # rows every iteration, which churns memory and can OOM Colab).
+    disease_arr = adata.obs[DISEASE_COL].astype(str).to_numpy()
+    diseases = sorted(d for d in np.unique(disease_arr) if d.lower() != "normal")
     print(f"Found {len(diseases)} disease conditions to benchmark.\n")
 
+    rng = np.random.default_rng(seed=42)
     rows = []
     for disease in diseases:
-        mask = (adata.obs[DISEASE_COL].astype(str) == disease).to_numpy()
-        n_cells = int(mask.sum())
+        pos = np.where(disease_arr == disease)[0]
+        n_cells = len(pos)
         if n_cells == 0:
             continue
-        print(f"  [{disease}]  {n_cells:,} cells — building pseudo-bulk ...", flush=True)
+        # Cap cells per disease — pseudo-bulk over a 50k sample is just as stable
+        # as over the full set, but fast, memory-safe, and deterministic.
+        if n_cells > MAX_CELLS_PER_DISEASE:
+            pos = np.sort(rng.choice(pos, size=MAX_CELLS_PER_DISEASE, replace=False))
+        print(f"  [{disease}]  {n_cells:,} cells (using {len(pos):,}) — building pseudo-bulk ...", flush=True)
 
+        mask = np.zeros(len(disease_arr), dtype=bool)
+        mask[pos] = True
         vec = pseudobulk_log1p_cp10k(adata, mask, n_genes)
 
         # Collapse duplicate symbols (keep max-expressed), drop zeros
