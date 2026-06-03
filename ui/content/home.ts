@@ -67,14 +67,14 @@ export const BLOCKS = [
   {
     label:   'OUR SCIENCE',
     heading: 'A biological reference model of the healthy human lung, built from real donor data.',
-    link:    'About us',
-    href:    '/about',
+    link:    '',
+    href:    '',
   },
   {
     label:   'OUR MISSION',
     heading: 'Understand every deviation from human health. Build the biological foundation to detect, describe, and correct every disease.',
-    link:    'About us',
-    href:    '/about',
+    link:    '',
+    href:    '',
   },
   {
     label:   'OUR FOUNDATION',

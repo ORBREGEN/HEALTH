@@ -27,9 +27,11 @@ export default function BlocksSection() {
                   {block.heading}
                 </h3>
               </div>
-              <a href={block.href} className="iso-cta iso-cta--muted" style={{ marginTop: 48 }}>
-                {block.link} →
-              </a>
+              {block.href && block.link && (
+                <a href={block.href} className="iso-cta iso-cta--muted" style={{ marginTop: 48 }}>
+                  {block.link} →
+                </a>
+              )}
             </div>
           ))}
         </div>
