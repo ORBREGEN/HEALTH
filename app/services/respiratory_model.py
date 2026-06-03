@@ -152,7 +152,13 @@ def build_respiratory_model() -> dict:
     n_donors    = healthy_obs["donor_id"].nunique() if "donor_id" in healthy_obs.columns else 0
     logger.info("Healthy cells (disease == 'normal'): %s across %s donors", n_healthy, n_donors)
 
-    gene_names = list(adata.var_names)
+    # Key genes by HGNC symbol (e.g. COL1A1), not the CellxGene Ensembl var_names
+    # (ENSG…). Submissions, pathways, and the demo all use symbols. feature_name is
+    # per-column and shares column order with adata.X, so this stays aligned.
+    if "feature_name" in adata.var.columns:
+        gene_names = list(adata.var["feature_name"].astype(str))
+    else:
+        gene_names = list(adata.var_names)
 
     # ── Step 1: Cell type composition per donor ────────────────────────────────
     logger.info("Computing cell type composition ...")
