@@ -20,7 +20,7 @@ export default function AnalyseRequestPage() {
         body: JSON.stringify({ code: code.trim() }),
       })
       if (res.ok) {
-        window.location.href = '/analyse'
+        window.location.href = '/fahimasima'
       } else {
         const data = await res.json()
         setError(data.error ?? 'Invalid access code.')

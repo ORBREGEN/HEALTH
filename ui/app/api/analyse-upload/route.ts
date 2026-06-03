@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const FASTAPI = process.env.FASTAPI_URL ?? 'http://localhost:8000'
 
-// Allow up to 10 minutes — large h5ad files need time to stream, parse, and analyse
-export const maxDuration = 600
+export const maxDuration = 300
 
 export async function POST(req: NextRequest) {
   try {

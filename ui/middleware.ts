@@ -10,9 +10,9 @@ export function middleware(request: NextRequest) {
   if (!valid) return NextResponse.next()
   if (token === valid) return NextResponse.next()
 
-  return NextResponse.redirect(new URL('/analyse/request', request.url))
+  return NextResponse.redirect(new URL('/fahimasima/request', request.url))
 }
 
 export const config = {
-  matcher: ['/analyse'],
+  matcher: ['/fahimasima'],
 }

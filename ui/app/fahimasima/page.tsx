@@ -165,7 +165,7 @@ function applyNorm(rows: GeneRow[], mode: NormMode): GeneRow[] {
 
 function buildReportCSV(report: DeviationReport): string {
   const lines: string[] = [
-    `# Senebiclabs Respiratory Intelligence Engine — Deviation Report`,
+    `# Senebiclabs Respiratory Intelligence Engine · Deviation Report`,
     `# Sample ID,${report.sample_id}`,
     `# Analysed at,${new Date().toISOString()}`,
     `# Overall deviation score,${(report.overall_deviation_score * 100).toFixed(1)}%`,
@@ -712,7 +712,7 @@ FN1       3.84`}</pre>
                         log1p CP10K · gene symbols (COL1A1, not Ensembl IDs) · min 10 genes
                       </p>
                       <p style={{ marginTop: 4, fontSize: 11, color: 'rgba(255,255,255,0.62)', fontFamily: 'monospace' }}>
-                        .h5ad and .zip (CellRanger output) are uploaded to the server — analysis starts automatically
+                        .h5ad and .zip (CellRanger output) are uploaded to the server. Analysis starts automatically
                       </p>
                     </div>
 
@@ -856,7 +856,7 @@ FN1       3.84`}</pre>
 
                     {!modelReady && !statusLoading && (
                       <p style={{ marginTop: 12, fontSize: 13, color: 'rgba(255,255,255,0.78)', fontFamily: 'monospace', lineHeight: 1.7 }}>
-                        Model not ready. You can still run — the API will return details.
+                        Model not ready. You can still run. The API will return details.
                       </p>
                     )}
                   </>
@@ -915,7 +915,7 @@ FN1       3.84`}</pre>
                   {report.data_quality_warnings?.length > 0 && (
                     <div style={{ padding: '18px 24px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 12 }}>
                       <div style={{ fontSize: 12, fontFamily: 'Geist Mono, monospace', letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(255,255,255,0.7)', marginBottom: 12 }}>
-                        Data quality warnings — review before interpreting results
+                        Data quality warnings · review before interpreting results
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
                         {report.data_quality_warnings.map((w, i) => (
@@ -1203,7 +1203,7 @@ FN1       3.84`}</pre>
                                 </span>
                                 <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.82)', fontFamily: 'Geist Mono, monospace' }}>
                                   bronchus {g.bronchus_baseline.toFixed(2)} · parenchyma {g.parenchyma_baseline.toFixed(2)}
-                                  {g.clinical_note && <span style={{ color: 'rgba(255,255,255,0.75)', marginLeft: 8 }}> — {g.clinical_note.slice(0, 60)}{g.clinical_note.length > 60 ? '…' : ''}</span>}
+                                  {g.clinical_note && <span style={{ color: 'rgba(255,255,255,0.75)', marginLeft: 8 }}> · {g.clinical_note.slice(0, 60)}{g.clinical_note.length > 60 ? '…' : ''}</span>}
                                 </span>
                               </div>
                             ))}
