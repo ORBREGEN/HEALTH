@@ -33,6 +33,7 @@ Colab (where hlca_full.h5ad lives):
 from __future__ import annotations
 
 import sys
+import os
 import json
 import numpy as np
 import pandas as pd
@@ -45,6 +46,32 @@ from scipy.sparse import issparse
 HLCA_PATH    = "data/hlca_full.h5ad"     # in Colab: e.g. /content/drive/MyDrive/.../hlca_full.h5ad
 API_URL      = "https://senebiclabs-api-777437555578.us-central1.run.app"
 DISEASE_COL  = "disease"
+
+# Set BENCH_LOCAL=1 to score against the freshly-built LOCAL model (app.services
+# .anomaly_detector) instead of the deployed API — lets you test a rebuild in
+# Colab before redeploying.
+USE_LOCAL = os.environ.get("BENCH_LOCAL") == "1"
+_local_analyse = None
+if USE_LOCAL:
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from app.services.anomaly_detector import analyse as _local_analyse  # noqa: E402
+
+
+def score_profile(disease: str, genes: dict) -> tuple[dict | None, int, str]:
+    """Return (report_dict, http_status, err). Dispatches local or API."""
+    if USE_LOCAL:
+        try:
+            rep = _local_analyse(disease, genes)
+            return rep.model_dump(), 200, ""
+        except Exception as exc:  # noqa: BLE001
+            return None, 0, f"local error: {exc}"
+    try:
+        r = requests.post(f"{API_URL}/api/v1/analyse",
+                          json={"sample_id": disease, "gene_expression": genes}, timeout=120)
+        return r.json(), r.status_code, ""
+    except Exception as exc:  # noqa: BLE001
+        return None, 0, f"api error: {exc}"
 SYMBOL_FIELD = "feature_name"            # HLCA var column holding HGNC symbols; falls back to var_names
 CHUNK        = 20_000                    # cells per chunk — bounds memory on large diseases
 OUT_CSV      = "disease_benchmark_results.csv"
@@ -77,14 +104,16 @@ DEVIATION_PASS = 0.20   # a disease should score clearly above healthy (healthy 
 # ── Pseudo-bulk ─────────────────────────────────────────────────────────────────
 
 def pseudobulk_log1p_cp10k(adata, mask: np.ndarray, n_genes: int) -> np.ndarray:
-    """Mean over cells of per-cell log1p(CP10K). Chunked, stays sparse.
+    """Mean of adata.X over the masked cells. Chunked, stays sparse.
 
-    Matches respiratory_model._normalize: raw counts -> log1p(counts/total*1e4).
-    Sparse throughout: log1p(0)=0 so sparsity is preserved, keeping memory tiny
-    (a dense chunk of 20k cells x 55k genes would be ~9 GB; sparse is a few hundred MB).
-    Returns a dense vector of length n_genes (the per-cell normalized mean).
+    adata.X in the HLCA (CellxGene) is ALREADY log1p(CP10K) — the same space the
+    model reference is built from. So the pseudo-bulk is simply the per-gene mean
+    of adata.X across the disease's cells. No re-normalization (that would
+    double-normalize and distort the comparison).
+
+    Sparse throughout: a dense 20k-cell x 55k-gene chunk would be ~9 GB.
+    Returns a dense vector of length n_genes.
     """
-    from scipy.sparse import diags
     idx = np.where(mask)[0]
     running = np.zeros(n_genes, dtype=np.float64)
     seen = 0
@@ -92,21 +121,12 @@ def pseudobulk_log1p_cp10k(adata, mask: np.ndarray, n_genes: int) -> np.ndarray:
         rows = idx[start:start + CHUNK]
         X = adata.X[rows, :]
         if issparse(X):
-            X = X.tocsr().astype(np.float64)
-            totals = np.asarray(X.sum(axis=1)).ravel()
-            totals[totals == 0] = 1.0                     # guard empty cells
-            Xn = diags(1.0 / totals) @ X                  # row-normalize (sparse)
-            Xn = Xn * 10_000.0                            # CP10K (sparse)
-            Xn = Xn.log1p()                               # log1p on stored values only
-            running += np.asarray(Xn.sum(axis=0)).ravel()
+            running += np.asarray(X.sum(axis=0)).ravel()
             seen += X.shape[0]
         else:
             X = np.asarray(X, dtype=np.float64)
-            totals = X.sum(axis=1, keepdims=True)
-            totals[totals == 0] = 1.0
-            Xn = np.log1p(X / totals * 10_000.0)
-            running += Xn.sum(axis=0)
-            seen += Xn.shape[0]
+            running += X.sum(axis=0)
+            seen += X.shape[0]
     if seen == 0:
         return running
     return running / seen
@@ -172,19 +192,11 @@ def main() -> int:
             if sym not in genes or v > genes[sym]:
                 genes[sym] = v
 
-        try:
-            r = requests.post(f"{API_URL}/api/v1/analyse",
-                              json={"sample_id": disease, "gene_expression": genes},
-                              timeout=120)
-            report = r.json()
-            if r.status_code != 200:
-                rows.append({"disease": disease, "n_cells": n_cells, "status": f"HTTP {r.status_code}",
-                             "score_%": None, "genes_flagged": None, "pathways": "", "pass": False})
-                print(f"      HTTP {r.status_code}: {str(report)[:120]}")
-                continue
-        except Exception as exc:  # noqa: BLE001
-            rows.append({"disease": disease, "n_cells": n_cells, "status": f"ERR {exc}",
+        report, status, err = score_profile(disease, genes)
+        if status != 200 or report is None:
+            rows.append({"disease": disease, "n_cells": n_cells, "status": err or f"HTTP {status}",
                          "score_%": None, "genes_flagged": None, "pathways": "", "pass": False})
+            print(f"      {err or ('HTTP ' + str(status))}")
             continue
 
         score    = report.get("overall_deviation_score", 0.0)

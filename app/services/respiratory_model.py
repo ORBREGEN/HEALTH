@@ -162,12 +162,14 @@ def build_respiratory_model() -> dict:
     all_healthy_idx = np.where(adata.obs[DISEASE_COLUMN] == HEALTHY_VALUE)[0]
     sample_idx = np.sort(rng.choice(all_healthy_idx, size=min(GLOBAL_SAMPLE_SIZE, len(all_healthy_idx)), replace=False))
 
-    X_raw = adata.X[sample_idx, :]
-    if issparse(X_raw):
-        X_raw = X_raw.toarray()
+    X = adata.X[sample_idx, :]
+    if issparse(X):
+        X = X.toarray()
     else:
-        X_raw = np.asarray(X_raw)
-    X_norm = _normalize(X_raw)
+        X = np.asarray(X)
+    # adata.X is already log1p(CP10K) (CellxGene-normalized). Use as-is.
+    # Do NOT re-normalize — that double-normalizes and distorts the reference.
+    X_norm = X
 
     gene_stats = _compute_gene_stats(X_norm, gene_names)
     logger.info("Gene statistics computed: %s genes tracked", len(gene_stats))
@@ -306,13 +308,14 @@ def _compute_cell_type_profiles(
         n_sample   = min(CELLS_PER_TYPE, len(positions))
         sample_pos = np.sort(rng.choice(positions, size=n_sample, replace=False))
 
-        X_raw = adata.X[sample_pos, :]
-        if _issparse(X_raw):
-            X_raw = X_raw.toarray()
+        X = adata.X[sample_pos, :]
+        if _issparse(X):
+            X = X.toarray()
         else:
-            X_raw = np.asarray(X_raw)
-        X_ct = _normalize(X_raw.astype(np.float32))
-        del X_raw
+            X = np.asarray(X)
+        # adata.X is already log1p(CP10K); use as-is (no re-normalization).
+        X_ct = X.astype(np.float32)
+        del X
 
         means    = X_ct.mean(axis=0)
         stds     = X_ct.std(axis=0)
