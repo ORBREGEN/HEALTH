@@ -382,3 +382,104 @@ npm run dev
 - **Patient intake form** (`/patients` page) — symptom description, language selection, specialist match results. Wires to `POST /api/v1/patient/intake`.
 - **Expert case review interface** (`/experts` page) — structured case queue, annotation workflow, confirmation/correction actions. Wires to Layer 3 API.
 - **Research portal** (`/research` page) — API documentation, data-use agreement flow, model status dashboard. Wires to `GET /api/v1/model/status` and `POST /api/v1/analyse`.
+
+---
+
+## Production Deploy + Three Model Bugs Found and Fixed (2026-06-04)
+
+The platform was deployed end to end (FastAPI on Google Cloud Run, Next.js on
+Vercel, Supabase for waitlist/expert tables, Resend for email). While building a
+disease-sensitivity benchmark to validate the model, three serious bugs surfaced
+in how the model was built. All three are now fixed, rebuilt, and live.
+
+### The benchmark that exposed everything
+
+`scripts/benchmark_diseases.py` runs every HLCA disease condition through the
+existing model as a pseudo-bulk profile (pure inference — the model stays
+disease-naive, built only from `disease == 'normal'` cells) and grades each
+against an expected-biology key. `scripts/build_model.py` rebuilds the model
+artefacts in Colab where the 20 GB `hlca_full.h5ad` lives.
+
+The first benchmark runs scored almost everything near 0% — which was wrong,
+because hand-made profiles scored high. Chasing that gap found the bugs.
+
+### Bug 1 — Double normalization
+
+`build_respiratory_model` read `adata.X` and ran it through `normalize_cp10k_log1p`
+(divide by total, log1p). But in the HLCA (CellxGene), `adata.X` is **already**
+log1p(CP10K) — raw counts live in `adata.raw.X`. So the build normalized
+already-normalized data, putting the healthy reference in a distorted, non-physical
+space. Hand-made profiles (in real log1p CP10K scale) looked hugely deviant against
+the compressed reference — falsely inflating scores — while real pseudo-bulk in the
+same double-normalized space looked flat.
+**Fix:** use `adata.X` as-is (it is already log1p CP10K); do not re-normalize.
+
+### Bug 2 — Genes keyed by Ensembl ID, not symbol
+
+The build keyed `gene_stats` by `adata.var_names`, which in the raw CellxGene file
+are Ensembl IDs (`ENSG…`). But submissions, the pathway atlas, and the demo all use
+HGNC symbols (`COL1A1`). Result: near-zero gene matches and **0 pathways** built.
+**Fix:** key the reference by `adata.var['feature_name']` (symbols), same column
+order as `X`.
+
+### Bug 3 — Per-cell statistics, unusable for sample-level input
+
+The reference used per-cell mean/std. Per-cell std is enormous (most cells are zero
+for any given gene), so an averaged sample (bulk or pseudo-bulk — what a lab actually
+submits) could never deviate enough to flag. This is the documented `SFTPC` limit,
+generalized.
+**Fix:** build the reference at the **sample level** — each healthy donor's
+pseudo-bulk (mean of `adata.X` over that donor's cells, capped at 3,000 cells/donor),
+then mean/std across the 265 qualifying donors. Donor-to-donor std is the right
+yardstick for a submitted sample, exactly like bulk RNA-seq differential expression.
+
+### Result after the fixes (benchmark, local against rebuilt model)
+
+- **15/15 disease conditions detected as deviant** from healthy (scores 21–57%, each
+  flagging 20–100 genes). Nothing reads as healthy.
+- **8/15 reproduce the correct established biology** under strict marker matching:
+  pneumonia, cystic fibrosis, sarcoidosis, ILD, LAM, COVID-19, hypersensitivity
+  pneumonitis, pulmonary fibrosis.
+- Verified by hand: fibrosis flags **CTHRC1 / SPP1 / ACTA2 / THY1 / SFRP2** (modern
+  single-cell IPF markers); pneumonia flags **CXCL10 / GBP1 / GBP5 / CXCL9** (the
+  interferon-γ chemokine + antimicrobial program). Live production IPF check:
+  53.3% deviation, top hits CTHRC1/THY1/LOXL2/SFRP2/POSTN/SPP1, pathways TGF-β/fibrosis + EMT.
+- The 7 that "miss" strict biology are mostly carcinomas — they still score highly
+  deviant and flag 80–100 genes, but tumor-specific proliferation markers are diluted
+  in whole-tissue pseudo-bulk. Honest limitation, not a failure.
+
+### Model status now (production, built 2026-06-04)
+
+1,305,099 healthy cells · 268 donors · 33,861 genes · 60 cell types · 12 pathways ·
+per-donor pseudo-bulk reference · symbol-keyed · single log1p(CP10K) normalization.
+
+### What this is and isn't
+
+It is a **research prototype** that detects deviation from healthy and surfaces
+biologically correct, candidate findings for an expert to confirm. It is appropriate
+for **lab experiments on real samples** (run a same-protocol healthy control first to
+set the batch/noise floor; submit HGNC symbols at log1p CP10K, or raw counts via the
+upload path). It is **not** yet a tool to trust blindly: no independent-cohort
+validation, calibration/false-positive rate unmeasured, and known cleanup remaining
+(spatial baselines empty, stray pseudogene/Ensembl artefacts in flagged genes).
+
+### Deploy mechanics (gotchas learned)
+
+- Model artefacts are tracked JSON in `models/respiratory_model/`. The Dockerfile
+  bundles them; Cloud Build picks them up. **Never `git stash` in the Colab repo** —
+  it reverts rebuilt artefacts to the old committed ones (this silently wiped the good
+  model several times).
+- `.gcloudignore` is required: the `.gitignore` pattern `models/*` is non-anchored and
+  gcloud applied it to `app/models/*`, stripping `schemas.py` from the upload and
+  crashing the container on import.
+- Colab is ephemeral — save rebuilt artefacts to Drive immediately, and run heavy
+  jobs in the notebook kernel (subprocesses get killed) reading the file sequentially.
+
+### Next milestones (to move prototype → trusted)
+
+1. Independent-cohort validation (a public GEO/CellxGene disease dataset the model has
+   never seen).
+2. Calibration: false-positive rate on held-out healthy samples; stabilize score
+   ordering.
+3. Cleanup: rebuild spatial baselines; filter pseudogene/Ensembl noise from outputs.
+4. Per-result confidence + batch-effect guidance for external samples.
