@@ -2093,7 +2093,7 @@ details[open] > .faq-q {
 }
 
 /* ── FOOTER GRID FIX (3 cols now Trust column is removed) ─────────── */
-footer .grid { grid-template-columns: 1.6fr 1fr 1fr !important; }
+footer .grid { grid-template-columns: 1.6fr 1fr 1fr 1fr !important; }
 
 @media (max-width: 768px) {
   footer .grid { grid-template-columns: 1fr 1fr !important; }

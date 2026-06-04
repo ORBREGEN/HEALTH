@@ -108,6 +108,9 @@ export const FOOTER = {
     company: [
       { label: 'About', href: '/about' },
     ] satisfies NavItem[],
-    trust: [] satisfies NavItem[],
+    legal: [
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Terms',   href: '/terms' },
+    ] satisfies NavItem[],
   },
 }

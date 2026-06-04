@@ -27,6 +27,14 @@ export default function FooterSection() {
               ))}
             </ul>
           </div>
+          <div>
+            <h5>Legal</h5>
+            <ul>
+              {FOOTER.nav.legal.map((item) => (
+                <li key={item.label}><a href={item.href}>{item.label}</a></li>
+              ))}
+            </ul>
+          </div>
         </div>
         <div className="legal">
           <span>{FOOTER.legal}</span>
