@@ -79,11 +79,7 @@ export default function AnalyseRequestPage() {
           marginBottom: 48,
           opacity: 0.7,
         }}>
-          This tool is available to approved research partners. Enter your access code below, or{' '}
-          <a href="mailto:godwinyampoi449@gmail.com" style={{ color: 'var(--ink)', textDecoration: 'underline', textUnderlineOffset: 3 }}>
-            contact us
-          </a>{' '}
-          to request access.
+          This tool is available to approved research partners. Enter your access code below to continue.
         </p>
 
         <form onSubmit={submit} style={{ width: '100%', maxWidth: 380 }}>
