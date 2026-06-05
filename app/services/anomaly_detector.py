@@ -229,7 +229,43 @@ def _get_model() -> RespiratoryModel:
 
 # ── Main entry point ───────────────────────────────────────────────────────────
 
+# ── Robust-gene filter ────────────────────────────────────────────────────────
+# Non-coding and unannotated genes (lncRNAs, antisense, miRNAs, snoRNA hosts,
+# clone-named and bare Ensembl features) vary far more between sequencing cohorts
+# and annotations than between biological states. On external/real samples they
+# dominate the deviation ranking and bury true protein-coding signal (e.g. the
+# CXCL10/GBP interferon program). We exclude them at scoring time. All disease
+# markers (CXCL10, GBP1, COL1A1, SFTPC, ...) are protein-coding and retained.
+_NOISE_PREFIX = re.compile(
+    r"^(ENSG\d|LINC\d|MIR[0-9L]|SNHG\d|SNOR[AD]|SCARNA|RNU\d|RN7|RNA5|RNY|"
+    r"LOC\d|FP\d|AC\d{6}|AL\d{6}|AP\d{6}|AC0|CTD-|CTC-|RP\d+-|XXbac-)"
+)
+_NOISE_SUFFIX = re.compile(r"(-AS\d+|-DT|-OT\d+|-IT\d+)$")
+_NOISE_NAMED = {
+    "TSIX", "XIST", "MALAT1", "NEAT1", "HULC", "HOTAIR", "MEG3", "MEG8",
+    "KCNQ1OT1", "H19", "MITA1", "MIR100HG", "SNHG14", "FTX", "GAS5", "NORAD",
+    "CYTOR", "MIAT", "PVT1", "DLEU2", "TUG1", "ZFAS1", "LINC-PINT",
+}
+
+
+def _is_robust_gene(sym: str) -> bool:
+    s = sym.upper()
+    if s in _NOISE_NAMED:
+        return False
+    if _NOISE_PREFIX.match(s):
+        return False
+    if _NOISE_SUFFIX.search(s):
+        return False
+    return True
+
+
+def _robust_filter(genes: dict[str, float]) -> dict[str, float]:
+    return {g: v for g, v in genes.items() if _is_robust_gene(g)}
+
+
 def analyse(sample_id: str, gene_expression: dict[str, float]) -> DeviationReport:
+    # Drop non-coding/technical-noise genes before any scoring (see _is_robust_gene).
+    gene_expression = _robust_filter(gene_expression)
     if len(gene_expression) < MIN_GENES:
         raise InsufficientGenesError(len(gene_expression), MIN_GENES)
 
