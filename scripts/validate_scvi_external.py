@@ -126,6 +126,12 @@ def main() -> int:
     # ── Prepare query genes to match the reference, then scArches surgery ────────
     query = _counts_adata(adata)
     query.var_names_make_unique()
+    # scArches needs the reference's batch column present in the query. The whole
+    # external cohort is ONE new lab/batch — give it a single new category so surgery
+    # learns its technical signature as a new batch embedding.
+    batch_key = str(ref["batch_key"])
+    query.obs[batch_key] = "external_query"
+    print(f"Tagging query as one new batch ('{batch_key}' = 'external_query')")
     print(f"Aligning query genes to reference ({len(ref_var_names)} genes) ...")
     scvi.model.SCVI.prepare_query_anndata(query, REF_DIR)  # subsets/zero-pads to ref genes
 
