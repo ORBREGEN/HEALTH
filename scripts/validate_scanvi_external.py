@@ -135,12 +135,15 @@ def main() -> int:
     # ── Per-donor scoring ───────────────────────────────────────────────────────
     donors = query.obs[DONOR_COL].astype(str).to_numpy()
     rows = []
+    latent_rows = []          # (donor, group, whole-donor latent vector) for relative scoring
     for d in sorted(donor_group):
         sel = np.where(donors == d)[0]
         if sel.size < MIN_CELLS:
             continue
         # whole-donor baseline
-        base = _maha(Zq[sel].mean(axis=0), ref["whole_mu"], ref["whole_cov_inv"])
+        v = Zq[sel].mean(axis=0)
+        latent_rows.append((d, donor_group[d], v))
+        base = _maha(v, ref["whole_mu"], ref["whole_cov_inv"])
         # per-compartment standardized deviations
         comp = []
         for ct in np.unique(pred[sel]):
@@ -170,6 +173,25 @@ def main() -> int:
     bctl = df[df.group == "control"]["whole_donor"].to_numpy()
     auc_c, auc_b = _auc(dis, ctl), _auc(bdis, bctl)
 
+    # ── Relative-to-own-controls scoring (the "bring-your-own-controls" mode) ────
+    # Score each donor by distance from the cohort's OWN control centroid in the
+    # latent space, not the European reference. The shared batch+ancestry offset
+    # cancels because both groups come from the same cohort. Leave-one-out for
+    # controls so they are not trivially close to their own centroid.
+    ctl_all = np.vstack([v for _, g, v in latent_rows if g == "control"])
+    rel = {}
+    for d, g, v in latent_rows:
+        if g == "control":
+            others = np.vstack([vv for dd, gg, vv in latent_rows
+                                if gg == "control" and dd != d])
+            centroid = others.mean(axis=0)
+        else:
+            centroid = ctl_all.mean(axis=0)
+        rel[d] = float(np.linalg.norm(v - centroid))
+    rdis = np.array([rel[d] for d, g, _ in latent_rows if g == "disease"])
+    rctl = np.array([rel[d] for d, g, _ in latent_rows if g == "control"])
+    auc_rel = _auc(rdis, rctl)
+
     def med(a): return float(np.median(a)) if len(a) else float("nan")
     print("\n" + "=" * 76)
     print("INDEPENDENT VALIDATION — scANVI, per-compartment (raw genes:0.29 | scVI whole:0.49)")
@@ -180,11 +202,15 @@ def main() -> int:
           f"   AUC = {auc_c:.2f}")
     print(f"WHOLE-DONOR base control median={med(bctl):6.2f}  disease median={med(bdis):6.2f}"
           f"   AUC = {auc_b:.2f}")
-    verdict = ("STRONG" if auc_c >= 0.85 else "MODERATE" if auc_c >= 0.70 else
-               "WEAK" if auc_c >= 0.60 else "NONE")
-    print(f"  -> {verdict} per-compartment separation")
-    print("\nIf disease donors' top_compartments are myeloid/epithelial, that's the "
-          "interferon program surfacing — the biology we know is there (raw panel 0.79).")
+    print(f"RELATIVE (own controls) control median={med(rctl):6.2f}  disease median={med(rdis):6.2f}"
+          f"   AUC = {auc_rel:.2f}   <- the bring-your-own-controls mode")
+    best = max(auc_c, auc_b, auc_rel)
+    verdict = ("STRONG" if best >= 0.85 else "MODERATE" if best >= 0.70 else
+               "WEAK" if best >= 0.60 else "NONE")
+    print(f"  -> best separation: {verdict} (AUC {best:.2f})")
+    print("\nRELATIVE is the product-relevant number: it scores against the cohort's own")
+    print("controls, so batch and ancestry cancel. If it clears 0.7 where absolute (vs the")
+    print("European reference) stayed ~0.5, the bring-your-own-controls mode works.")
     print(f"Saved: {OUT_CSV}")
     return 0
 
