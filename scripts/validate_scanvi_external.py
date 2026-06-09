@@ -73,7 +73,7 @@ def _counts_adata(adata, keep_genes=None):
     if keep_genes is not None:
         # Subset to the reference genes BEFORE copying — keeps memory bounded on
         # cohorts with large gene sets (e.g. Adams: 46k genes).
-        mask = var.index.isin(keep_genes).to_numpy()
+        mask = var.index.isin(keep_genes)
         Xc, var = Xc[:, mask], var[mask]
     a = ad.AnnData(X=Xc.copy(), obs=adata.obs.copy(), var=var)
     probe = a.X[:50]
