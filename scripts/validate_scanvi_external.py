@@ -62,7 +62,7 @@ def _group_of(label):
     return None
 
 
-def _counts_adata(adata):
+def _counts_adata(adata, keep_genes=None):
     import anndata as ad
     if adata.raw is not None:
         Xc, var = adata.raw.X, adata.raw.var.copy()
@@ -70,6 +70,11 @@ def _counts_adata(adata):
         Xc, var = adata.layers["counts"], adata.var.copy()
     else:
         Xc, var = adata.X, adata.var.copy()
+    if keep_genes is not None:
+        # Subset to the reference genes BEFORE copying — keeps memory bounded on
+        # cohorts with large gene sets (e.g. Adams: 46k genes).
+        mask = var.index.isin(keep_genes).to_numpy()
+        Xc, var = Xc[:, mask], var[mask]
     a = ad.AnnData(X=Xc.copy(), obs=adata.obs.copy(), var=var)
     probe = a.X[:50]
     probe = probe.toarray() if issparse(probe) else np.asarray(probe)
@@ -119,7 +124,9 @@ def main() -> int:
     adata = adata[adata.obs[DONOR_COL].astype(str).isin(donor_group)].copy()
 
     # ── Surgery + label transfer ────────────────────────────────────────────────
-    query = _counts_adata(adata)
+    import gc
+    query = _counts_adata(adata, keep_genes=set(map(str, ref["var_names"])))
+    del adata; gc.collect()
     query.var_names_make_unique()
     query.obs[batch_key] = "external_query"          # one new batch
     query.obs[label_key] = "Unknown"                 # unlabeled -> scANVI predicts
