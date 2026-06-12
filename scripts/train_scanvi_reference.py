@@ -186,6 +186,33 @@ def main() -> int:
     with open(os.path.join(OUT_DIR, "reference.pkl"), "wb") as f:
         pickle.dump(ref, f)
     print(f"  saved -> {os.path.join(OUT_DIR, 'reference.pkl')}")
+
+    # ── Optional: standardized integration benchmark (scib-metrics) ─────────────
+    # Scores the scANVI integration the way the field does: batch mixing vs
+    # cell-type (biological) conservation. NOTE: this measures CELL-TYPE
+    # conservation, not disease-signal conservation — it tells you if the healthy
+    # reference is well-integrated, not whether disease survives (that's the
+    # cross-cohort validation). Run with: RUN_SCIB=1
+    if os.environ.get("RUN_SCIB") == "1":
+        try:
+            from scib_metrics.benchmark import Benchmarker
+        except ImportError:
+            print("\nscib-metrics not installed. Run: pip install scib-metrics")
+        else:
+            print("\nRunning scib-metrics integration benchmark "
+                  f"(batch='{batch_key}', label='{LABEL_KEY}') ...")
+            train.obsm["scANVI"] = Z
+            bm = Benchmarker(train, batch_key=batch_key, label_key=LABEL_KEY,
+                             embedding_obsm_keys=["scANVI"], n_jobs=-1)
+            bm.benchmark()
+            res = bm.get_results(min_max_scale=False)
+            print("\n" + "=" * 74)
+            print("scib-metrics — integration quality (1.0 = best)")
+            print("=" * 74)
+            print(res.to_string())
+            res.to_csv(os.path.join(OUT_DIR, "scib_metrics.csv"))
+            print(f"\nsaved -> {os.path.join(OUT_DIR, 'scib_metrics.csv')}")
+
     print("\nNext: scripts/validate_scanvi_external.py")
     return 0
 
